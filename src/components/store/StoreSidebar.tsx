@@ -3,24 +3,25 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import SidebarWatermark from '@/components/store/SidebarWatermark'
+import type { Category } from '@/types/category'
 
 type StoreSidebarProps = {
-  categories: string[]
-  activeCategory: string
-  onCategoryChange: (category: string) => void
+  categories: Category[]
+  activeCategoryId: string
+  onCategoryChange: (categoryId: string) => void
   onClose?: () => void
 }
 
 export default function StoreSidebar({
   categories,
-  activeCategory,
+  activeCategoryId,
   onCategoryChange,
   onClose,
 }: StoreSidebarProps) {
   const [categoriesOpen, setCategoriesOpen] = useState(true)
 
-  const handleCategorySelect = (category: string) => {
-    onCategoryChange(category)
+  const handleCategorySelect = (categoryId: string) => {
+    onCategoryChange(categoryId)
     const isMobile = window.matchMedia('(max-width: 1023px)').matches
     if (isMobile) onClose?.()
   }
@@ -63,17 +64,17 @@ export default function StoreSidebar({
             {categoriesOpen && (
               <ul className="mt-1 space-y-0.5 border-l-2 border-green-100 pl-3">
                 {categories.map((category) => (
-                  <li key={category}>
+                  <li key={category.id || 'all'}>
                     <button
                       type="button"
-                      onClick={() => handleCategorySelect(category)}
+                      onClick={() => handleCategorySelect(category.id)}
                       className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium tracking-wide transition ${
-                        activeCategory === category
+                        activeCategoryId === category.id
                           ? 'bg-brand-green text-white'
                           : 'text-gray-600 hover:bg-green-50 hover:text-brand-green'
                       }`}
                     >
-                      {category}
+                      {category.name}
                     </button>
                   </li>
                 ))}

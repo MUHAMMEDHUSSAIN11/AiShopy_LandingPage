@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from '@/lib/server-api'
+import { getCatalog } from '@/lib/catalog'
 import type { Product } from '@/types/product'
 
 export class ProductNotFoundError extends Error {
@@ -8,53 +8,29 @@ export class ProductNotFoundError extends Error {
   }
 }
 
-export async function getProducts(storeSlug: string): Promise<Product[]> {
-  const baseUrl = await getApiBaseUrl()
-  const params = new URLSearchParams({ storeSlug })
-  const response = await fetch(`${baseUrl}/api/products?${params.toString()}`, {
-    cache: 'no-store',
-  })
-
-  if (!response.ok) {
-    throw new Error('Failed to load products. Please try again.')
-  }
-
-  return response.json() as Promise<Product[]>
+export async function getProducts(
+  storeSlug: string,
+  categoryId?: string,
+): Promise<Product[]> {
+  const catalog = await getCatalog(storeSlug, { categoryId })
+  return catalog.products
 }
 
 export async function getProduct(storeSlug: string, productSlug: string): Promise<Product> {
-  const baseUrl = await getApiBaseUrl()
-  const params = new URLSearchParams({ storeSlug })
-  const response = await fetch(
-    `${baseUrl}/api/product/${productSlug}?${params.toString()}`,
-    { cache: 'no-store' },
-  )
+  const catalog = await getCatalog(storeSlug)
+  const product = catalog.products.find((item) => item.slug === productSlug)
 
-  if (response.status === 404) {
+  if (!product) {
     throw new ProductNotFoundError(productSlug)
   }
 
-  if (!response.ok) {
-    throw new Error('Failed to load product. Please try again.')
-  }
-
-  return response.json() as Promise<Product>
+  return product
 }
 
-export async function getProductById(productId: string): Promise<Product | null> {
-  const baseUrl = await getApiBaseUrl()
-  const response = await fetch(`${baseUrl}/api/products?id=${productId}`, {
-    cache: 'no-store',
-  })
-
-  if (response.status === 404) {
-    return null
-  }
-
-  if (!response.ok) {
-    throw new Error('Failed to load product. Please try again.')
-  }
-
-  const products = (await response.json()) as Product[]
-  return products[0] ?? null
+export async function getProductById(
+  storeSlug: string,
+  productId: string,
+): Promise<Product | null> {
+  const catalog = await getCatalog(storeSlug, { productId })
+  return catalog.products[0] ?? null
 }

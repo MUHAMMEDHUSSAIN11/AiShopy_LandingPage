@@ -2,20 +2,21 @@
 
 import { useEffect } from 'react'
 import StoreSidebar from '@/components/store/StoreSidebar'
+import type { Category } from '@/types/category'
 
 type StoreSidebarPanelProps = {
   open: boolean
   onClose: () => void
-  categories: string[]
-  activeCategory: string
-  onCategoryChange: (category: string) => void
+  categories: Category[]
+  activeCategoryId: string
+  onCategoryChange: (categoryId: string) => void
 }
 
 export default function StoreSidebarPanel({
   open,
   onClose,
   categories,
-  activeCategory,
+  activeCategoryId,
   onCategoryChange,
 }: StoreSidebarPanelProps) {
   useEffect(() => {
@@ -66,7 +67,7 @@ export default function StoreSidebarPanel({
 
         <StoreSidebar
           categories={categories}
-          activeCategory={activeCategory}
+          activeCategoryId={activeCategoryId}
           onCategoryChange={onCategoryChange}
           onClose={onClose}
         />

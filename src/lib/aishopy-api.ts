@@ -1,0 +1,241 @@
+import 'server-only'
+import { z } from 'zod'
+import { slugify } from '@/lib/slugify'
+import type { Catalog, CatalogQueryParams } from '@/types/catalog'
+import type { Category } from '@/types/category'
+import type { Product } from '@/types/product'
+import type { Store } from '@/types/store'
+
+const AISHOOPY_API_URL =
+  process.env.AISHOOPY_API_URL?.replace(/\/$/, '') ?? 'https://aishopy.up.railway.app'
+
+const idSchema = z.union([z.string(), z.number()]).transform(String)
+
+const numericSchema = z.union([z.number(), z.string()]).transform((value) => {
+  const parsed = typeof value === 'string' ? Number(value) : value
+  return Number.isFinite(parsed) ? parsed : 0
+})
+
+const apiStoreSchema = z
+  .object({
+    id: idSchema,
+    name: z.string(),
+    slug: z.string(),
+    description: z.string().nullable().optional(),
+    logo_url: z.string().nullable().optional(),
+    banner_url: z.string().nullable().optional(),
+  })
+  .passthrough()
+
+const apiCategorySchema = z
+  .object({
+    id: idSchema,
+    store_id: idSchema.optional(),
+    parent_id: idSchema.nullable().optional(),
+    name: z.string(),
+    slug: z.string().optional(),
+    image_url: z.string().nullable().optional(),
+    is_active: z.boolean().optional(),
+  })
+  .passthrough()
+
+const apiProductSchema = z
+  .object({
+    id: idSchema,
+    store_id: idSchema.optional(),
+    category_id: idSchema.nullable().optional(),
+    sku: z.string().nullable().optional(),
+    slug: z.string().optional(),
+    name: z.string(),
+    description: z.string().nullable().optional(),
+    base_price: numericSchema.optional(),
+    price: numericSchema.optional(),
+    stock_qty: numericSchema.optional(),
+    stock: numericSchema.optional(),
+    quantity: numericSchema.optional(),
+    images: z.array(z.string()).nullable().optional(),
+    image_urls: z.array(z.string()).optional(),
+    thumbnail_url: z.string().nullable().optional(),
+    is_active: z.boolean().optional(),
+    status: z.string().optional(),
+  })
+  .passthrough()
+
+const apiCatalogDataSchema = z
+  .object({
+    store: apiStoreSchema.optional(),
+    categories: z.array(apiCategorySchema).optional().default([]),
+    products: z.array(apiProductSchema).optional().default([]),
+  })
+  .passthrough()
+
+const apiSuccessSchema = z.object({
+  success: z.literal(true),
+  data: apiCatalogDataSchema,
+})
+
+const apiErrorSchema = z.object({
+  success: z.literal(false),
+  error: z
+    .object({
+      message: z.string(),
+      code: z.string().optional(),
+    })
+    .optional(),
+})
+
+export class AishopyApiError extends Error {
+  code?: string
+
+  constructor(message: string, code?: string) {
+    super(message)
+    this.name = 'AishopyApiError'
+    this.code = code
+  }
+}
+
+function mapStore(apiStore: z.infer<typeof apiStoreSchema>): Store {
+  return {
+    id: apiStore.id,
+    name: apiStore.name,
+    slug: apiStore.slug,
+    description: apiStore.description ?? undefined,
+    logoUrl: apiStore.logo_url ?? undefined,
+    bannerUrl: apiStore.banner_url ?? undefined,
+  }
+}
+
+function resolveStore(
+  storeSlug: string,
+  apiStore: z.infer<typeof apiStoreSchema> | undefined,
+  storeId: string,
+): Store {
+  if (apiStore) {
+    return mapStore(apiStore)
+  }
+
+  return {
+    id: storeId,
+    name: storeSlug,
+    slug: storeSlug,
+  }
+}
+
+function mapCategory(apiCategory: z.infer<typeof apiCategorySchema>): Category {
+  return {
+    id: apiCategory.id,
+    name: apiCategory.name,
+  }
+}
+
+function resolveImageUrls(apiProduct: z.infer<typeof apiProductSchema>): string[] {
+  const images = apiProduct.images?.filter(Boolean) ?? []
+  if (images.length > 0) return images
+  if (apiProduct.image_urls?.length) return apiProduct.image_urls
+  if (apiProduct.thumbnail_url) return [apiProduct.thumbnail_url]
+  return []
+}
+
+function mapProduct(
+  apiProduct: z.infer<typeof apiProductSchema>,
+  store: Store,
+  categories: Category[],
+): Product {
+  const categoryId = apiProduct.category_id ?? ''
+  const categoryName =
+    categories.find((category) => category.id === categoryId)?.name ?? 'Uncategorized'
+
+  const slug =
+    apiProduct.slug?.trim() ||
+    `${slugify(apiProduct.name)}${apiProduct.id ? `-${apiProduct.id}` : ''}`
+
+  return {
+    id: apiProduct.id,
+    storeId: apiProduct.store_id ?? store.id,
+    sku: apiProduct.sku ?? '',
+    slug,
+    name: apiProduct.name,
+    description: apiProduct.description ?? '',
+    price: apiProduct.base_price ?? apiProduct.price ?? 0,
+    stock: apiProduct.stock_qty ?? apiProduct.stock ?? apiProduct.quantity ?? 0,
+    categoryId,
+    categoryName,
+    imageUrls: resolveImageUrls(apiProduct),
+  }
+}
+
+function isActiveCategory(category: z.infer<typeof apiCategorySchema>): boolean {
+  return category.is_active !== false
+}
+
+function isActiveProduct(product: z.infer<typeof apiProductSchema>): boolean {
+  if (product.is_active === false) return false
+  if (product.status && product.status !== 'active') return false
+  return true
+}
+
+function buildCatalogUrl(storeSlug: string, params: CatalogQueryParams = {}): URL {
+  const url = new URL(`${AISHOOPY_API_URL}/api/public/catalog`)
+
+  if (params.categoryId) url.searchParams.set('category_id', params.categoryId)
+  if (params.productId) url.searchParams.set('product_id', params.productId)
+  if (params.sort) url.searchParams.set('sort', params.sort)
+  if (params.minPrice !== undefined && params.minPrice > 0) {
+    url.searchParams.set('min_price', String(params.minPrice))
+  }
+  if (params.maxPrice !== undefined && params.maxPrice > 0) {
+    url.searchParams.set('max_price', String(params.maxPrice))
+  }
+
+  return url
+}
+
+export async function fetchPublicCatalog(
+  storeSlug: string,
+  params: CatalogQueryParams = {},
+): Promise<Catalog> {
+  const url = buildCatalogUrl(storeSlug, params)
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      'X-Store-Slug': storeSlug,
+    },
+    cache: 'no-store',
+  })
+
+  let body: unknown
+  try {
+    body = await response.json()
+  } catch {
+    throw new AishopyApiError('Invalid response from catalog API')
+  }
+
+  const errorResult = apiErrorSchema.safeParse(body)
+  if (errorResult.success) {
+    throw new AishopyApiError(
+      errorResult.data.error?.message ?? 'Catalog request failed',
+      errorResult.data.error?.code,
+    )
+  }
+
+  if (!response.ok) {
+    throw new AishopyApiError(`Catalog API returned ${response.status}`)
+  }
+
+  const successResult = apiSuccessSchema.safeParse(body)
+  if (!successResult.success) {
+    throw new AishopyApiError('Unexpected catalog API response format')
+  }
+
+  const { data } = successResult.data
+  const storeId =
+    data.store?.id ?? data.products[0]?.store_id ?? data.categories[0]?.store_id ?? ''
+
+  const store = resolveStore(storeSlug, data.store, storeId)
+  const categories = data.categories.filter(isActiveCategory).map(mapCategory)
+  const products = data.products.filter(isActiveProduct).map((product) =>
+    mapProduct(product, store, categories),
+  )
+
+  return { store, categories, products }
+}

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { findProductById, findStoreBySlug } from '@/lib/mock-data'
+import { AishopyApiError, fetchPublicCatalog } from '@/lib/aishopy-api'
 import type { CustomerDetails, OrderCreateRequest, OrderCreateResponse } from '@/types/customer'
 
 function isValidCustomer(customer: CustomerDetails): boolean {
@@ -21,13 +21,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const store = findStoreBySlug(body.storeSlug)
-    if (!store) {
-      return NextResponse.json({ error: 'Store not found' }, { status: 404 })
+    let catalog
+    try {
+      catalog = await fetchPublicCatalog(body.storeSlug, { productId: body.productId })
+    } catch (error) {
+      if (error instanceof AishopyApiError && error.code === 'STORE_NOT_RESOLVED') {
+        return NextResponse.json({ error: 'Store not found' }, { status: 404 })
+      }
+      throw error
     }
 
-    const product = findProductById(body.productId)
-    if (!product || product.storeId !== store.id) {
+    const product = catalog.products[0]
+    if (!product || product.storeId !== catalog.store.id) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
@@ -35,7 +40,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid customer details' }, { status: 400 })
     }
 
-    // TODO: Persist order to production database and notify merchant app.
+    // TODO: Persist order to production API when available.
     const orderId = `ORD${Date.now().toString(36).toUpperCase()}`
 
     const response: OrderCreateResponse = {

@@ -1,14 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getAllStores, getStoreProductCount } from '@/lib/mock-data'
 
 /**
- * TODO: Replace with production store listing API.
+ * Store listing is resolved per subdomain. Use /api/catalog?storeSlug={slug} instead.
  */
 export async function GET() {
-  const stores = getAllStores().map((store) => ({
-    ...store,
-    productCount: getStoreProductCount(store.slug),
-  }))
-
-  return NextResponse.json(stores)
+  return NextResponse.json([])
 }

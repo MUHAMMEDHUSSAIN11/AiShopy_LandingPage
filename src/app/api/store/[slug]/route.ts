@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { findStoreBySlug } from '@/lib/mock-data'
+import { AishopyApiError, fetchPublicCatalog } from '@/lib/aishopy-api'
 
 type RouteContext = {
   params: Promise<{ slug: string }>
@@ -7,11 +7,18 @@ type RouteContext = {
 
 export async function GET(_request: Request, context: RouteContext) {
   const { slug } = await context.params
-  const store = findStoreBySlug(slug)
 
-  if (!store) {
-    return NextResponse.json({ error: 'Store not found' }, { status: 404 })
+  try {
+    const catalog = await fetchPublicCatalog(slug)
+    return NextResponse.json(catalog.store)
+  } catch (error) {
+    if (error instanceof AishopyApiError) {
+      if (error.code === 'STORE_NOT_RESOLVED') {
+        return NextResponse.json({ error: 'Store not found' }, { status: 404 })
+      }
+      return NextResponse.json({ error: error.message }, { status: 502 })
+    }
+
+    return NextResponse.json({ error: 'Failed to load store' }, { status: 500 })
   }
-
-  return NextResponse.json(store)
 }

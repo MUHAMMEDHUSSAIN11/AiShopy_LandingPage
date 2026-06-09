@@ -20,7 +20,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
 
   try {
     const store = await getStoreBySlug(storeSlug)
-    const product = await getProductById(productId)
+    const product = await getProductById(storeSlug, productId)
 
     if (!product || product.storeId !== store.id) {
       notFound()

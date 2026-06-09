@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from '@/lib/server-api'
+import { getCatalog } from '@/lib/catalog'
 import type { Store } from '@/types/store'
 
 export class StoreNotFoundError extends Error {
@@ -9,18 +9,13 @@ export class StoreNotFoundError extends Error {
 }
 
 export async function getStoreBySlug(slug: string): Promise<Store> {
-  const baseUrl = await getApiBaseUrl()
-  const response = await fetch(`${baseUrl}/api/store/${slug}`, {
-    cache: 'no-store',
-  })
-
-  if (response.status === 404) {
-    throw new StoreNotFoundError(slug)
+  try {
+    const catalog = await getCatalog(slug)
+    return catalog.store
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Store not found')) {
+      throw new StoreNotFoundError(slug)
+    }
+    throw error
   }
-
-  if (!response.ok) {
-    throw new Error('Failed to load store. Please try again.')
-  }
-
-  return response.json() as Promise<Store>
 }

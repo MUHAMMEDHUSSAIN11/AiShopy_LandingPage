@@ -1,21 +1,16 @@
 import { NextResponse } from 'next/server'
-import { findCustomerByPhone } from '@/lib/mock-data'
+import { findCustomerByPhone } from '@/lib/mock-customers'
 import type { CustomerCheckResponse } from '@/types/customer'
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { phone?: string }
 
-    if (!body.phone || typeof body.phone !== 'string') {
+    if (!body.phone) {
       return NextResponse.json({ error: 'phone is required' }, { status: 400 })
     }
 
-    const phone = body.phone.replace(/\D/g, '')
-    if (phone.length < 10) {
-      return NextResponse.json({ error: 'Invalid phone number' }, { status: 400 })
-    }
-
-    const customer = findCustomerByPhone(phone)
+    const customer = findCustomerByPhone(body.phone.replace(/\D/g, ''))
 
     const response: CustomerCheckResponse = customer
       ? { exists: true, customer }

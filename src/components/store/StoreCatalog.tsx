@@ -1,7 +1,7 @@
 import StoreCatalogContent from '@/components/store/StoreCatalogContent'
 import ErrorMessage from '@/components/store/ErrorMessage'
-import { getProducts } from '@/lib/product'
-import { getStoreBySlug, StoreNotFoundError } from '@/lib/store'
+import { getCatalog } from '@/lib/catalog'
+import { StoreNotFoundError } from '@/lib/store'
 
 type StoreCatalogProps = {
   storeSlug: string
@@ -9,14 +9,18 @@ type StoreCatalogProps = {
 
 export default async function StoreCatalog({ storeSlug }: StoreCatalogProps) {
   try {
-    const [store, products] = await Promise.all([
-      getStoreBySlug(storeSlug),
-      getProducts(storeSlug),
-    ])
+    const catalog = await getCatalog(storeSlug)
 
-    return <StoreCatalogContent store={store} products={products} />
+    return (
+      <StoreCatalogContent
+        storeSlug={storeSlug}
+        store={catalog.store}
+        categories={catalog.categories}
+        initialProducts={catalog.products}
+      />
+    )
   } catch (error) {
-    if (error instanceof StoreNotFoundError) {
+    if (error instanceof StoreNotFoundError || (error instanceof Error && error.message === 'Store not found')) {
       return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
           <ErrorMessage
