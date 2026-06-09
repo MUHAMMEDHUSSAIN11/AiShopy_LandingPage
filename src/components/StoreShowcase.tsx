@@ -54,7 +54,7 @@ export default function StoreShowcase() {
                 </div>
                 <div className="flex-1 rounded-md bg-white px-3 py-1 text-center text-xs text-gray-500">
                   <span className="font-semibold text-brand-green">fashionhub</span>
-                  <span>.aishopy.com</span>
+                  <span>.aishopy.io</span>
                 </div>
               </div>
 
@@ -65,7 +65,7 @@ export default function StoreShowcase() {
                     <p className="text-xs text-gray-400">Product Catalog</p>
                   </div>
                   <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-brand-green">
-                    24 products
+                    18 products
                   </span>
                 </div>
 

@@ -1,0 +1,84 @@
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import CheckoutForm from '@/components/store/CheckoutForm'
+import ErrorMessage from '@/components/store/ErrorMessage'
+import { getStoreSlugFromHeaders } from '@/lib/server-api'
+import { getProductById } from '@/lib/product'
+import { getStoreBySlug, StoreNotFoundError } from '@/lib/store'
+
+type CheckoutPageProps = {
+  params: Promise<{ productId: string }>
+}
+
+export default async function CheckoutPage({ params }: CheckoutPageProps) {
+  const storeSlug = await getStoreSlugFromHeaders()
+  const { productId } = await params
+
+  if (!storeSlug) {
+    notFound()
+  }
+
+  try {
+    const store = await getStoreBySlug(storeSlug)
+    const product = await getProductById(productId)
+
+    if (!product || product.storeId !== store.id) {
+      notFound()
+    }
+
+    if (product.stock <= 0) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+          <ErrorMessage
+            title="Out of stock"
+            message="This product is currently unavailable."
+            action={
+              <Link
+                href={`/product/${product.slug}`}
+                className="inline-block rounded-full bg-brand-green px-6 py-2.5 text-sm font-semibold text-white"
+              >
+                Back to product
+              </Link>
+            }
+          />
+        </div>
+      )
+    }
+
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="border-b border-gray-100 bg-white">
+          <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
+            <Link
+              href={`/product/${product.slug}`}
+              className="text-sm font-medium text-gray-600 hover:text-brand-green"
+            >
+              ← Back to product
+            </Link>
+          </div>
+        </header>
+
+        <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+          <h1 className="text-2xl font-bold text-brand-dark">Checkout</h1>
+          <p className="mt-1 text-sm text-gray-500">Complete your order request</p>
+          <div className="mt-8">
+            <CheckoutForm store={store} product={product} />
+          </div>
+        </main>
+      </div>
+    )
+  } catch (error) {
+    if (error instanceof StoreNotFoundError) {
+      notFound()
+    }
+
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <ErrorMessage
+          title="Something went wrong"
+          message="We couldn't load checkout. Please refresh and try again."
+        />
+      </div>
+    )
+  }
+}

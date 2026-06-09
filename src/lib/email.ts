@@ -20,7 +20,7 @@ export async function sendWaitlistNotification(data: WaitlistFormData) {
   const transporter = getTransporter()
   const from = process.env.SMTP_USER ?? CONTACT_EMAIL
   const storeUrl = data.storeName.trim()
-    ? `${data.storeName.trim()}.aishopy.com`
+    ? `${data.storeName.trim()}.aishopy.io`
     : 'Not provided yet'
 
   await transporter.sendMail({
@@ -55,7 +55,7 @@ export async function sendWaitlistNotification(data: WaitlistFormData) {
           </tr>
         </table>
         <p style="margin-top: 20px; font-size: 13px; color: #666;">
-          Submitted via aishopy.com waitlist form
+          Submitted via aishopy.io waitlist form
         </p>
       </div>
     `,

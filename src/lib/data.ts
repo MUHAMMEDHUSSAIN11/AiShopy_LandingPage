@@ -59,7 +59,7 @@ export const steps = [
     title: 'Create Your Store',
     description:
       'Create your branded online store in minutes at your own subdomain. Add products, images, pricing, stock, and categories to your catalog.',
-    example: 'yourstore.aishopy.com',
+    example: 'yourstore.aishopy.io',
     icon: '🏪',
   },
   {
@@ -111,7 +111,7 @@ export const features = [
   { title: 'Instagram Commerce', description: 'Sell directly from Instagram DMs.', icon: '📸' },
   {
     title: 'Branded Storefront',
-    description: 'Get your own store at yourstore.aishopy.com — professional and shareable.',
+    description: 'Get your own store at yourstore.aishopy.io — professional and shareable.',
     icon: '🏪',
   },
   {
@@ -177,7 +177,7 @@ export const reasons = [
 
 export const platformItems = [
   'AI Sales Assistant',
-  'yourstore.aishopy.com',
+  'yourstore.aishopy.io',
   'Store Product Catalog',
   'Owner Mobile App',
   'Inventory Management',

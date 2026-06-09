@@ -1,3 +1,5 @@
+import { STOREFRONT_DOMAIN } from '@/lib/constants'
+
 type StoreUrlHighlightProps = {
   storeName?: string
   size?: 'sm' | 'md' | 'lg'
@@ -20,7 +22,7 @@ export default function StoreUrlHighlight({
       className={`inline-flex items-center rounded-xl border border-green-200 bg-white font-mono font-semibold shadow-sm ${sizeClasses[size]} ${className}`}
     >
       <span className="text-brand-green">{storeName}</span>
-      <span className="text-gray-400">.aishopy.com</span>
+      <span className="text-gray-400">.{STOREFRONT_DOMAIN}</span>
     </span>
   )
 }
