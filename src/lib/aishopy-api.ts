@@ -1,9 +1,10 @@
 import 'server-only'
 import { z } from 'zod'
 import { slugify } from '@/lib/slugify'
+import { isVariantPurchasable } from '@/lib/product-utils'
 import type { Catalog, CatalogQueryParams } from '@/types/catalog'
 import type { Category } from '@/types/category'
-import type { Product } from '@/types/product'
+import type { Product, ProductVariant } from '@/types/product'
 import type { Store } from '@/types/store'
 
 const AISHOOPY_API_URL =
@@ -11,7 +12,8 @@ const AISHOOPY_API_URL =
 
 const idSchema = z.union([z.string(), z.number()]).transform(String)
 
-const numericSchema = z.union([z.number(), z.string()]).transform((value) => {
+const numericSchema = z.union([z.number(), z.string(), z.null()]).transform((value) => {
+  if (value === null || value === '') return 0
   const parsed = typeof value === 'string' ? Number(value) : value
   return Number.isFinite(parsed) ? parsed : 0
 })
@@ -33,9 +35,26 @@ const apiCategorySchema = z
     store_id: idSchema.optional(),
     parent_id: idSchema.nullable().optional(),
     name: z.string(),
-    slug: z.string().optional(),
     image_url: z.string().nullable().optional(),
     is_active: z.boolean().optional(),
+    description: z.string().nullable().optional(),
+  })
+  .passthrough()
+
+const apiVariantSchema = z
+  .object({
+    id: idSchema,
+    product_id: idSchema,
+    name: z.string(),
+    options: z.record(z.string()).optional().default({}),
+    price_delta: numericSchema.optional(),
+    stock_qty: numericSchema.optional(),
+    sku: z.string().nullable().optional(),
+    image_url: z.string().nullable().optional(),
+    is_active: z.boolean().optional(),
+    compare_at_price: numericSchema.nullable().optional(),
+    mark_as_sold: z.boolean().optional(),
+    mark_as_non_inventory: z.boolean().optional(),
   })
   .passthrough()
 
@@ -49,7 +68,9 @@ const apiProductSchema = z
     name: z.string(),
     description: z.string().nullable().optional(),
     base_price: numericSchema.optional(),
+    compare_at_price: numericSchema.nullable().optional(),
     price: numericSchema.optional(),
+    track_inventory: z.boolean().optional(),
     stock_qty: numericSchema.optional(),
     stock: numericSchema.optional(),
     quantity: numericSchema.optional(),
@@ -58,6 +79,9 @@ const apiProductSchema = z
     thumbnail_url: z.string().nullable().optional(),
     is_active: z.boolean().optional(),
     status: z.string().optional(),
+    mark_as_sold: z.boolean().optional(),
+    mark_as_non_inventory: z.boolean().optional(),
+    variants: z.array(apiVariantSchema).optional().default([]),
   })
   .passthrough()
 
@@ -125,6 +149,8 @@ function mapCategory(apiCategory: z.infer<typeof apiCategorySchema>): Category {
   return {
     id: apiCategory.id,
     name: apiCategory.name,
+    parentId: apiCategory.parent_id ?? undefined,
+    imageUrl: apiCategory.image_url ?? undefined,
   }
 }
 
@@ -136,6 +162,34 @@ function resolveImageUrls(apiProduct: z.infer<typeof apiProductSchema>): string[
   return []
 }
 
+function mapCompareAtPrice(value: number | undefined): number | undefined {
+  if (!value || value <= 0) return undefined
+  return value
+}
+
+function mapVariant(
+  apiVariant: z.infer<typeof apiVariantSchema>,
+  basePrice: number,
+): ProductVariant {
+  const priceDelta = apiVariant.price_delta ?? 0
+
+  return {
+    id: apiVariant.id,
+    productId: apiVariant.product_id,
+    name: apiVariant.name,
+    options: apiVariant.options ?? {},
+    priceDelta,
+    price: basePrice + priceDelta,
+    compareAtPrice: mapCompareAtPrice(apiVariant.compare_at_price ?? undefined),
+    stock: apiVariant.stock_qty ?? 0,
+    sku: apiVariant.sku ?? '',
+    imageUrl: apiVariant.image_url ?? undefined,
+    isActive: apiVariant.is_active !== false,
+    markAsSold: apiVariant.mark_as_sold ?? false,
+    markAsNonInventory: apiVariant.mark_as_non_inventory ?? false,
+  }
+}
+
 function mapProduct(
   apiProduct: z.infer<typeof apiProductSchema>,
   store: Store,
@@ -145,23 +199,41 @@ function mapProduct(
   const categoryName =
     categories.find((category) => category.id === categoryId)?.name ?? 'Uncategorized'
 
+  const basePrice = apiProduct.base_price ?? apiProduct.price ?? 0
+  const variants = (apiProduct.variants ?? [])
+    .filter((variant) => variant.is_active !== false)
+    .map((variant) => mapVariant(variant, basePrice))
+
   const slug =
     apiProduct.slug?.trim() ||
     `${slugify(apiProduct.name)}${apiProduct.id ? `-${apiProduct.id}` : ''}`
 
-  return {
+  const product: Product = {
     id: apiProduct.id,
     storeId: apiProduct.store_id ?? store.id,
     sku: apiProduct.sku ?? '',
     slug,
     name: apiProduct.name,
     description: apiProduct.description ?? '',
-    price: apiProduct.base_price ?? apiProduct.price ?? 0,
+    price: basePrice,
+    compareAtPrice: mapCompareAtPrice(apiProduct.compare_at_price ?? undefined),
     stock: apiProduct.stock_qty ?? apiProduct.stock ?? apiProduct.quantity ?? 0,
+    trackInventory: apiProduct.track_inventory ?? true,
+    markAsSold: apiProduct.mark_as_sold ?? false,
+    markAsNonInventory: apiProduct.mark_as_non_inventory ?? false,
     categoryId,
     categoryName,
     imageUrls: resolveImageUrls(apiProduct),
+    variants,
   }
+
+  if (variants.length > 0) {
+    product.stock = variants
+      .filter(isVariantPurchasable)
+      .reduce((total, variant) => (variant.markAsNonInventory ? total : total + variant.stock), 0)
+  }
+
+  return product
 }
 
 function isActiveCategory(category: z.infer<typeof apiCategorySchema>): boolean {

@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/format'
+import { getCardPriceLabel, isProductInStock } from '@/lib/product-utils'
 import type { Product } from '@/types/product'
 
 type ProductCardProps = {
@@ -9,7 +10,8 @@ type ProductCardProps = {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const imageUrl = product.imageUrls[0]
-  const outOfStock = product.stock <= 0
+  const outOfStock = !isProductInStock(product)
+  const { price, prefix } = getCardPriceLabel(product)
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
@@ -34,7 +36,10 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       <div className="flex flex-1 flex-col p-4">
         <h2 className="line-clamp-2 font-semibold text-brand-dark">{product.name}</h2>
-        <p className="mt-2 text-lg font-bold text-brand-green">{formatPrice(product.price)}</p>
+        <p className="mt-2 text-lg font-bold text-brand-green">
+          {prefix ? `${prefix} ` : ''}
+          {formatPrice(price)}
+        </p>
         <Link
           href={`/product/${product.slug}`}
           className="mt-4 inline-flex w-full items-center justify-center rounded-full border border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green transition hover:bg-brand-green hover:text-white"

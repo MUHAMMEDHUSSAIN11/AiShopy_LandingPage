@@ -2,17 +2,24 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import CheckoutForm from '@/components/store/CheckoutForm'
 import ErrorMessage from '@/components/store/ErrorMessage'
+import {
+  findVariantById,
+  isProductInStock,
+  isVariantPurchasable,
+} from '@/lib/product-utils'
 import { getStoreSlugFromHeaders } from '@/lib/server-api'
 import { getProductById } from '@/lib/product'
 import { getStoreBySlug, StoreNotFoundError } from '@/lib/store'
 
 type CheckoutPageProps = {
   params: Promise<{ productId: string }>
+  searchParams: Promise<{ variant?: string }>
 }
 
-export default async function CheckoutPage({ params }: CheckoutPageProps) {
+export default async function CheckoutPage({ params, searchParams }: CheckoutPageProps) {
   const storeSlug = await getStoreSlugFromHeaders()
   const { productId } = await params
+  const { variant: variantId } = await searchParams
 
   if (!storeSlug) {
     notFound()
@@ -26,7 +33,16 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       notFound()
     }
 
-    if (product.stock <= 0) {
+    const selectedVariant = variantId ? findVariantById(product, variantId) : undefined
+    if (variantId && !selectedVariant) {
+      notFound()
+    }
+
+    const inStock = selectedVariant
+      ? isVariantPurchasable(selectedVariant)
+      : isProductInStock(product)
+
+    if (!inStock) {
       return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
           <ErrorMessage
@@ -62,7 +78,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
           <h1 className="text-2xl font-bold text-brand-dark">Checkout</h1>
           <p className="mt-1 text-sm text-gray-500">Complete your order request</p>
           <div className="mt-8">
-            <CheckoutForm store={store} product={product} />
+            <CheckoutForm store={store} product={product} selectedVariant={selectedVariant} />
           </div>
         </main>
       </div>

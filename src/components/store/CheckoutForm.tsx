@@ -6,12 +6,14 @@ import Link from 'next/link'
 import { checkCustomer, createOrder } from '@/lib/customer'
 import { checkoutSchema, phoneSchema, type CheckoutFormData } from '@/lib/checkout-schema'
 import { formatPrice } from '@/lib/format'
-import type { Product } from '@/types/product'
+import { getDisplayPrice, getProductImages } from '@/lib/product-utils'
+import type { Product, ProductVariant } from '@/types/product'
 import type { Store } from '@/types/store'
 
 type CheckoutFormProps = {
   store: Store
   product: Product
+  selectedVariant?: ProductVariant
 }
 
 type FormErrors = Partial<Record<keyof CheckoutFormData, string>>
@@ -26,7 +28,9 @@ const emptyForm: CheckoutFormData = {
   pincode: '',
 }
 
-export default function CheckoutForm({ store, product }: CheckoutFormProps) {
+export default function CheckoutForm({ store, product, selectedVariant }: CheckoutFormProps) {
+  const summaryImage = getProductImages(product, selectedVariant)[0]
+  const summaryPrice = getDisplayPrice(product, selectedVariant)
   const [step, setStep] = useState<'phone' | 'details' | 'success'>('phone')
   const [phoneInput, setPhoneInput] = useState('')
   const [phoneError, setPhoneError] = useState('')
@@ -133,10 +137,10 @@ export default function CheckoutForm({ store, product }: CheckoutFormProps) {
   return (
     <div className="space-y-8">
       <div className="flex gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        {product.imageUrls[0] && (
+        {summaryImage && (
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100">
             <Image
-              src={product.imageUrls[0]}
+              src={summaryImage}
               alt={product.name}
               fill
               className="object-cover"
@@ -146,7 +150,10 @@ export default function CheckoutForm({ store, product }: CheckoutFormProps) {
         )}
         <div>
           <p className="font-semibold text-brand-dark">{product.name}</p>
-          <p className="mt-1 text-lg font-bold text-brand-green">{formatPrice(product.price)}</p>
+          {selectedVariant ? (
+            <p className="mt-1 text-sm text-gray-600">{selectedVariant.name}</p>
+          ) : null}
+          <p className="mt-1 text-lg font-bold text-brand-green">{formatPrice(summaryPrice)}</p>
           <p className="mt-1 text-xs text-gray-500">{store.name}</p>
         </div>
       </div>
