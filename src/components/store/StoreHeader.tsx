@@ -13,7 +13,9 @@ type StoreHeaderProps = {
 
 export default function StoreHeader({ store }: StoreHeaderProps) {
   const router = useRouter()
-  const cartCount = useCartStore((state) => state.totalCount())
+  const cartCount = useCartStore((state) =>
+    state.items.reduce((sum, line) => sum + line.quantity, 0),
+  )
 
   return (
     <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur-sm">

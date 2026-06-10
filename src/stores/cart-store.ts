@@ -8,6 +8,20 @@ type AddCartItemInput = Omit<CartItem, 'id' | 'quantity'> & {
   quantity?: number
 }
 
+const ADD_DEBOUNCE_MS = 600
+let lastAddKey: string | null = null
+let lastAddAt = 0
+
+function shouldSkipDuplicateAdd(id: string): boolean {
+  const now = Date.now()
+  if (lastAddKey === id && now - lastAddAt < ADD_DEBOUNCE_MS) {
+    return true
+  }
+  lastAddKey = id
+  lastAddAt = now
+  return false
+}
+
 type CartState = {
   storeSlug: string | null
   items: CartItem[]
@@ -27,6 +41,8 @@ export const useCartStore = create<CartState>()(
 
       addItem: (storeSlug, item) => {
         const id = buildCartItemId(item.productId, item.variantId)
+        if (shouldSkipDuplicateAdd(id)) return
+
         const quantityToAdd = item.quantity ?? 1
 
         set((state) => {

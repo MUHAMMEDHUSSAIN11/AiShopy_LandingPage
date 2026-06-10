@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/format'
@@ -20,16 +20,21 @@ type ProductCardProps = {
 export default function ProductCard({ storeSlug, product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem)
   const [added, setAdded] = useState(false)
+  const isAddingRef = useRef(false)
 
   const imageUrl = product.imageUrls[0]
   const outOfStock = !isProductInStock(product)
   const { price, prefix, compareAtPrice } = getCardPriceLabel(product)
   const handleAddToCart = () => {
-    if (outOfStock) return
+    if (outOfStock || isAddingRef.current) return
 
+    isAddingRef.current = true
     addItem(storeSlug, buildCartLineFromProduct(product))
     setAdded(true)
-    window.setTimeout(() => setAdded(false), 1500)
+    window.setTimeout(() => {
+      setAdded(false)
+      isAddingRef.current = false
+    }, 600)
   }
 
   return (

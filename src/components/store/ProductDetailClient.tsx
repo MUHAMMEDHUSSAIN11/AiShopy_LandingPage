@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BackLink from '@/components/store/BackLink'
 import ProductImageGallery from '@/components/store/ProductImageGallery'
@@ -30,8 +30,11 @@ type ProductDetailClientProps = {
 
 export default function ProductDetailClient({ store, product }: ProductDetailClientProps) {
   const router = useRouter()
-  const cartCount = useCartStore((state) => state.totalCount())
+  const cartCount = useCartStore((state) =>
+    state.items.reduce((sum, line) => sum + line.quantity, 0),
+  )
   const addItem = useCartStore((state) => state.addItem)
+  const isAddingRef = useRef(false)
 
   const optionGroups = useMemo(() => getVariantOptionGroups(product.variants), [product.variants])
 
@@ -40,6 +43,7 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
     return defaultVariant?.options ?? {}
   })
   const [addedMessage, setAddedMessage] = useState('')
+  const [isAdding, setIsAdding] = useState(false)
 
   const selectedVariant = useMemo(() => {
     if (product.variants.length === 0) return null
@@ -61,7 +65,10 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
   }
 
   const handleAddToCart = (goToCheckout = false) => {
-    if (!inStock) return
+    if (!inStock || isAddingRef.current) return
+
+    isAddingRef.current = true
+    setIsAdding(true)
 
     addItem(store.slug, buildCartLineFromProduct(product, selectedVariant))
 
@@ -71,7 +78,11 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
     }
 
     setAddedMessage('Added to cart')
-    window.setTimeout(() => setAddedMessage(''), 2000)
+    window.setTimeout(() => {
+      setAddedMessage('')
+      isAddingRef.current = false
+      setIsAdding(false)
+    }, 600)
   }
 
   return (
@@ -150,15 +161,17 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
+                  disabled={isAdding}
                   onClick={() => handleAddToCart(false)}
-                  className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-4 text-base font-semibold text-brand-green transition hover:bg-green-50"
+                  className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-4 text-base font-semibold text-brand-green transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Add to Cart
                 </button>
                 <button
                   type="button"
+                  disabled={isAdding}
                   onClick={() => handleAddToCart(true)}
-                  className="inline-flex flex-1 items-center justify-center rounded-full bg-brand-green px-6 py-4 text-base font-semibold text-white transition hover:bg-emerald-600"
+                  className="inline-flex flex-1 items-center justify-center rounded-full bg-brand-green px-6 py-4 text-base font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Buy Now
                 </button>
