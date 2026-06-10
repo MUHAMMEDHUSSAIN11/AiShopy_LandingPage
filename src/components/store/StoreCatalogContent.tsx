@@ -73,7 +73,7 @@ export default function StoreCatalogContent({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <StoreHeader store={store} cartCount={0} />
+      <StoreHeader store={store} />
 
       <StoreSidebarPanel
         open={sidebarOpen}
@@ -109,7 +109,7 @@ export default function StoreCatalogContent({
               <p className="mt-2 text-sm text-gray-500">Try a different search or category.</p>
             </div>
           ) : (
-            <ProductGrid products={filteredProducts} />
+            <ProductGrid storeSlug={storeSlug} products={filteredProducts} />
           )}
         </div>
       </div>

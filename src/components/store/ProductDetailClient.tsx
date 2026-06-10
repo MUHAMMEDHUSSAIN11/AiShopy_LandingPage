@@ -1,20 +1,25 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import BackLink from '@/components/store/BackLink'
+import ProductImageGallery from '@/components/store/ProductImageGallery'
+import CartIcon from '@/components/store/CartIcon'
 import { formatPrice } from '@/lib/format'
 import {
+  buildCartLineFromProduct,
   findVariantByOptions,
+  formatSelectedOptionsLabel,
   getCompareAtPrice,
   getDefaultVariant,
   getDisplayPrice,
   getProductImages,
-  getProductStockLabel,
   getVariantOptionGroups,
   isProductInStock,
   isVariantPurchasable,
+  resolveVariantForSelection,
 } from '@/lib/product-utils'
+import { useCartStore } from '@/stores/cart-store'
 import type { Product } from '@/types/product'
 import type { Store } from '@/types/store'
 
@@ -24,78 +29,63 @@ type ProductDetailClientProps = {
 }
 
 export default function ProductDetailClient({ store, product }: ProductDetailClientProps) {
+  const router = useRouter()
+  const cartCount = useCartStore((state) => state.totalCount())
+  const addItem = useCartStore((state) => state.addItem)
+
   const optionGroups = useMemo(() => getVariantOptionGroups(product.variants), [product.variants])
 
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
     const defaultVariant = getDefaultVariant(product)
     return defaultVariant?.options ?? {}
   })
+  const [addedMessage, setAddedMessage] = useState('')
 
   const selectedVariant = useMemo(() => {
     if (product.variants.length === 0) return null
-    return findVariantByOptions(product.variants, selectedOptions) ?? getDefaultVariant(product) ?? null
+    return findVariantByOptions(product.variants, selectedOptions)
   }, [product.variants, selectedOptions])
 
   const images = getProductImages(product, selectedVariant)
-  const primaryImage = images[0]
   const price = getDisplayPrice(product, selectedVariant)
   const compareAtPrice = getCompareAtPrice(product, selectedVariant)
   const inStock = selectedVariant
     ? isVariantPurchasable(selectedVariant)
     : isProductInStock(product)
-  const stockLabel = getProductStockLabel(product, selectedVariant)
-
-  const checkoutHref = selectedVariant
-    ? `/checkout/${product.id}?variant=${selectedVariant.id}`
-    : `/checkout/${product.id}`
+  const selectedLabel = formatSelectedOptionsLabel(optionGroups, selectedOptions)
 
   const handleOptionSelect = (key: string, value: string) => {
-    setSelectedOptions((current) => ({ ...current, [key]: value }))
+    const { options } = resolveVariantForSelection(product.variants, selectedOptions, key, value)
+    setSelectedOptions(options)
+    setAddedMessage('')
+  }
+
+  const handleAddToCart = (goToCheckout = false) => {
+    if (!inStock) return
+
+    addItem(store.slug, buildCartLineFromProduct(product, selectedVariant))
+
+    if (goToCheckout) {
+      router.push('/checkout')
+      return
+    }
+
+    setAddedMessage('Added to cart')
+    window.setTimeout(() => setAddedMessage(''), 2000)
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-100 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          <Link href="/" className="text-sm font-medium text-gray-600 hover:text-brand-green">
-            ← Back to {store.name}
-          </Link>
+          <BackLink href="/" label={`Back to ${store.name}`} />
+          <CartIcon count={cartCount} onClick={() => router.push('/cart')} />
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-          <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-2xl bg-white shadow-sm">
-              {primaryImage ? (
-                <Image
-                  src={primaryImage}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-400">
-                  No image available
-                </div>
-              )}
-            </div>
-
-            {images.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
-                {images.slice(1).map((url) => (
-                  <div
-                    key={url}
-                    className="relative aspect-square overflow-hidden rounded-lg border border-gray-200"
-                  >
-                    <Image src={url} alt={product.name} fill className="object-cover" sizes="100px" />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductImageGallery images={images} alt={product.name} />
 
           <div>
             <p className="text-sm font-medium text-gray-500">
@@ -136,27 +126,15 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
                     </div>
                   </div>
                 ))}
-                {selectedVariant ? (
-                  <p className="text-sm text-gray-500">Selected: {selectedVariant.name}</p>
+                {selectedLabel ? (
+                  <p className="text-sm text-gray-500">Selected: {selectedLabel}</p>
                 ) : null}
               </div>
             )}
 
-            <div className="mt-4 flex items-center gap-2">
-              <span
-                className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                  !inStock
-                    ? 'bg-red-100 text-red-700'
-                    : stockLabel.includes('Select')
-                      ? 'bg-gray-100 text-gray-700'
-                      : stockLabel.includes('5') || stockLabel === 'In stock'
-                        ? 'bg-green-100 text-brand-green'
-                        : 'bg-amber-100 text-amber-700'
-                }`}
-              >
-                {stockLabel}
-              </span>
-            </div>
+            {addedMessage ? (
+              <p className="mt-4 text-sm font-medium text-brand-green">{addedMessage}</p>
+            ) : null}
 
             <p className="mt-6 leading-relaxed text-gray-600">{product.description}</p>
 
@@ -169,12 +147,22 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
                 Out of Stock
               </button>
             ) : (
-              <Link
-                href={checkoutHref}
-                className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-brand-green px-6 py-4 text-base font-semibold text-white transition hover:bg-emerald-600"
-              >
-                Buy Now
-              </Link>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => handleAddToCart(false)}
+                  className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-4 text-base font-semibold text-brand-green transition hover:bg-green-50"
+                >
+                  Add to Cart
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAddToCart(true)}
+                  className="inline-flex flex-1 items-center justify-center rounded-full bg-brand-green px-6 py-4 text-base font-semibold text-white transition hover:bg-emerald-600"
+                >
+                  Buy Now
+                </button>
+              </div>
             )}
           </div>
         </div>

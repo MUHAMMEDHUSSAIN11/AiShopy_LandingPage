@@ -45,14 +45,26 @@ export function getCompareAtPrice(product: Product, variant?: ProductVariant | n
   return compareAt > price ? compareAt : undefined
 }
 
-export function getCardPriceLabel(product: Product): { price: number; prefix?: string } {
+export function getCardPriceLabel(product: Product): {
+  price: number
+  prefix?: string
+  compareAtPrice?: number
+} {
   const purchasableVariants = product.variants.filter(isVariantPurchasable)
   if (purchasableVariants.length === 0) {
-    return { price: product.price }
+    return {
+      price: product.price,
+      compareAtPrice: getCompareAtPrice(product),
+    }
   }
 
   const lowest = Math.min(...purchasableVariants.map((variant) => variant.price))
-  return { price: lowest, prefix: 'From' }
+  const lowestVariant = purchasableVariants.find((variant) => variant.price === lowest)
+  return {
+    price: lowest,
+    prefix: 'From',
+    compareAtPrice: getCompareAtPrice(product, lowestVariant),
+  }
 }
 
 export function findVariantById(product: Product, variantId: string): ProductVariant | undefined {
@@ -86,8 +98,55 @@ export function findVariantByOptions(
   )
 }
 
+export function resolveVariantForSelection(
+  variants: ProductVariant[],
+  current: Record<string, string>,
+  changedKey: string,
+  changedValue: string,
+): { options: Record<string, string>; variant: ProductVariant | null } {
+  const withChange = { ...current, [changedKey]: changedValue }
+  const exact = findVariantByOptions(variants, withChange)
+  if (exact) {
+    return { options: { ...exact.options }, variant: exact }
+  }
+
+  const candidates = variants.filter((variant) => variant.options[changedKey] === changedValue)
+  const variant = candidates.find(isVariantPurchasable) ?? candidates[0]
+  if (variant) {
+    return { options: { ...variant.options }, variant }
+  }
+
+  return { options: withChange, variant: null }
+}
+
+export function formatSelectedOptionsLabel(
+  optionGroups: { key: string; values: string[] }[],
+  selectedOptions: Record<string, string>,
+): string {
+  return optionGroups
+    .map((group) => selectedOptions[group.key])
+    .filter(Boolean)
+    .join(' / ')
+}
+
 export function getDefaultVariant(product: Product): ProductVariant | undefined {
   return product.variants.find(isVariantPurchasable) ?? product.variants[0]
+}
+
+export function buildCartLineFromProduct(product: Product, variant?: ProductVariant | null) {
+  const resolvedVariant = variant ?? getDefaultVariant(product) ?? null
+  const price = getDisplayPrice(product, resolvedVariant)
+  const images = getProductImages(product, resolvedVariant)
+
+  return {
+    productId: product.id,
+    variantId: resolvedVariant?.id,
+    slug: product.slug,
+    name: product.name,
+    variantName: resolvedVariant?.name,
+    price,
+    imageUrl: images[0] ?? '',
+  }
 }
 
 export function getProductImages(product: Product, variant?: ProductVariant | null): string[] {

@@ -27,9 +27,16 @@ export interface CustomerDetails {
   pincode: string
 }
 
+export interface CartOrderItem {
+  productId: string
+  variantId?: string
+  quantity: number
+}
+
 export interface OrderCreateRequest {
   storeSlug: string
-  productId: string
+  productId?: string
+  items?: CartOrderItem[]
   customer: CustomerDetails
 }
 

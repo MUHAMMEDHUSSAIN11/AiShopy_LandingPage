@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import BackLink from '@/components/store/BackLink'
 import CheckoutForm from '@/components/store/CheckoutForm'
 import ErrorMessage from '@/components/store/ErrorMessage'
 import {
@@ -65,12 +66,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
       <div className="min-h-screen bg-gray-50">
         <header className="border-b border-gray-100 bg-white">
           <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
-            <Link
-              href={`/product/${product.slug}`}
-              className="text-sm font-medium text-gray-600 hover:text-brand-green"
-            >
-              ← Back to product
-            </Link>
+            <BackLink href={`/product/${product.slug}`} label="Back to product" />
           </div>
         </header>
 

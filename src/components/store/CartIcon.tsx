@@ -19,7 +19,7 @@ export default function CartIcon({ count = 0, onClick }: CartIconProps) {
         />
       </svg>
       {count > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-green px-1 text-[10px] font-bold text-white">
+        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
           {count > 99 ? '99+' : count}
         </span>
       )}
