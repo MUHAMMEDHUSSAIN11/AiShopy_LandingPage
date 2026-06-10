@@ -1,13 +1,6 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { inter } from '@/lib/fonts'
 import './globals.css'
-
-export const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  preload: true,
-  variable: '--font-inter',
-})
 
 export const metadata: Metadata = {
   title: 'AiShopy — Turn WhatsApp & Instagram Chats Into Sales',
