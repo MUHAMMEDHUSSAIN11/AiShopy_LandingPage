@@ -1,30 +1,17 @@
-export interface Customer {
-  id: string
-  phone: string
-  name?: string
-}
-
-export interface CustomerProfile extends Customer {
-  addressLine1?: string
-  addressLine2?: string
-  city?: string
-  state?: string
-  pincode?: string
-}
-
-export interface CustomerCheckResponse {
-  exists: boolean
-  customer?: CustomerProfile
-}
-
-export interface CustomerDetails {
+export interface ShippingAddress {
   name: string
-  phone: string
-  addressLine1: string
-  addressLine2?: string
+  phone_number: string
+  address: string
   city: string
+  district: string
   state: string
-  pincode: string
+  postcode: string
+}
+
+export interface CustomerByPhoneResponse {
+  exists: boolean
+  name?: string
+  addresses: ShippingAddress[]
 }
 
 export interface CartOrderItem {
@@ -35,9 +22,9 @@ export interface CartOrderItem {
 
 export interface OrderCreateRequest {
   storeSlug: string
-  productId?: string
-  items?: CartOrderItem[]
-  customer: CustomerDetails
+  items: CartOrderItem[]
+  shippingAddress: ShippingAddress
+  paymentMethod: string
 }
 
 export interface OrderCreateResponse {

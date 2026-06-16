@@ -7,7 +7,9 @@ import { formatPrice } from '@/lib/format'
 import {
   buildCartLineFromProduct,
   getCardPriceLabel,
+  getProductStockLabel,
   isProductInStock,
+  isProductSoldOut,
 } from '@/lib/product-utils'
 import { useCartStore } from '@/stores/cart-store'
 import type { Product } from '@/types/product'
@@ -23,7 +25,9 @@ export default function ProductCard({ storeSlug, product }: ProductCardProps) {
   const isAddingRef = useRef(false)
 
   const imageUrl = product.imageUrls[0]
+  const soldOut = isProductSoldOut(product)
   const outOfStock = !isProductInStock(product)
+  const availabilityLabel = getProductStockLabel(product)
   const { price, prefix, compareAtPrice } = getCardPriceLabel(product)
   const handleAddToCart = () => {
     if (outOfStock || isAddingRef.current) return
@@ -53,7 +57,7 @@ export default function ProductCard({ storeSlug, product }: ProductCardProps) {
         )}
         {outOfStock && (
           <span className="absolute left-3 top-3 rounded-full bg-gray-900/80 px-2.5 py-1 text-xs font-semibold text-white">
-            Out of stock
+            {soldOut ? 'Sold Out' : 'Out of stock'}
           </span>
         )}
       </Link>
@@ -74,6 +78,14 @@ export default function ProductCard({ storeSlug, product }: ProductCardProps) {
           ) : null}
         </div>
 
+        <p
+          className={`mt-1 text-xs font-medium ${
+            outOfStock ? 'text-gray-400' : 'text-brand-green'
+          }`}
+        >
+          {availabilityLabel}
+        </p>
+
         <div className="mt-4 flex flex-col gap-2">
           <Link
             href={`/product/${product.slug}`}
@@ -88,7 +100,7 @@ export default function ProductCard({ storeSlug, product }: ProductCardProps) {
             disabled={outOfStock}
             className="w-full rounded-full bg-brand-green px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
           >
-            {outOfStock ? 'Out of Stock' : added ? 'Added ✓' : 'Add to Cart'}
+            {outOfStock ? (soldOut ? 'Sold Out' : 'Out of Stock') : added ? 'Added ✓' : 'Add to Cart'}
           </button>
         </div>
       </div>

@@ -2,10 +2,17 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { buildCartItemId, type CartItem } from '@/types/cart'
+import { buildCartItemId, getCartItemMaxQuantity, type CartItem } from '@/types/cart'
 
 type AddCartItemInput = Omit<CartItem, 'id' | 'quantity'> & {
   quantity?: number
+}
+
+function clampToStock(item: CartItem, quantity: number): number {
+  const safeQuantity = Math.max(1, quantity)
+  const max = getCartItemMaxQuantity(item)
+  if (max === undefined) return safeQuantity
+  return Math.min(safeQuantity, Math.max(1, max))
 }
 
 const ADD_DEBOUNCE_MS = 600
@@ -47,7 +54,8 @@ export const useCartStore = create<CartState>()(
 
         set((state) => {
           if (state.storeSlug && state.storeSlug !== storeSlug) {
-            const newItem: CartItem = { ...item, id, quantity: quantityToAdd }
+            const seed: CartItem = { ...item, id, quantity: 0 }
+            const newItem: CartItem = { ...seed, quantity: clampToStock(seed, quantityToAdd) }
             return { storeSlug, items: [newItem] }
           }
 
@@ -56,14 +64,17 @@ export const useCartStore = create<CartState>()(
             return {
               storeSlug,
               items: state.items.map((line) =>
-                line.id === id ? { ...line, quantity: line.quantity + quantityToAdd } : line,
+                line.id === id
+                  ? { ...line, quantity: clampToStock(line, line.quantity + quantityToAdd) }
+                  : line,
               ),
             }
           }
 
+          const seed: CartItem = { ...item, id, quantity: 0 }
           return {
             storeSlug,
-            items: [...state.items, { ...item, id, quantity: quantityToAdd }],
+            items: [...state.items, { ...seed, quantity: clampToStock(seed, quantityToAdd) }],
           }
         })
       },
@@ -81,7 +92,9 @@ export const useCartStore = create<CartState>()(
         }
 
         set((state) => ({
-          items: state.items.map((line) => (line.id === id ? { ...line, quantity } : line)),
+          items: state.items.map((line) =>
+            line.id === id ? { ...line, quantity: clampToStock(line, quantity) } : line,
+          ),
         }))
       },
 

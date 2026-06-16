@@ -7,6 +7,7 @@ import BackLink from '@/components/store/BackLink'
 import StoreHeader from '@/components/store/StoreHeader'
 import { formatPrice } from '@/lib/format'
 import { useCartStore } from '@/stores/cart-store'
+import { canIncreaseCartQuantity } from '@/types/cart'
 import type { Store } from '@/types/store'
 
 type CartPageContentProps = {
@@ -84,7 +85,8 @@ export default function CartPageContent({ store }: CartPageContentProps) {
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="px-3 py-1 text-lg text-gray-600 hover:text-brand-green"
+                          disabled={!canIncreaseCartQuantity(item)}
+                          className="px-3 py-1 text-lg text-gray-600 hover:text-brand-green disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:text-gray-300"
                           aria-label="Increase quantity"
                         >
                           +
@@ -98,6 +100,13 @@ export default function CartPageContent({ store }: CartPageContentProps) {
                         Remove
                       </button>
                     </div>
+                    {!item.markAsNonInventory &&
+                    item.maxQuantity !== undefined &&
+                    item.quantity >= item.maxQuantity ? (
+                      <p className="mt-2 text-xs text-amber-600">
+                        Only {item.maxQuantity} available
+                      </p>
+                    ) : null}
                   </div>
 
                   <p className="shrink-0 font-semibold text-brand-dark">

@@ -34,25 +34,27 @@ export async function GET() {
       {
         method: 'POST',
         path: '/api/customer/check',
-        body: { phone: '9876543210' },
-        description: 'Mock customer lookup until production API is connected',
+        body: { storeSlug: 'my-shop', phone_number: '9876543210' },
+        description: 'Customer lookup via GET /api/public/customers/by-phone',
       },
       {
         method: 'POST',
         path: '/api/order/create',
         body: {
           storeSlug: 'my-shop',
-          productId: '1',
-          customer: {
+          items: [{ productId: '1', variantId: '10', quantity: 2 }],
+          shippingAddress: {
             name: 'Test User',
-            phone: '9999999999',
-            addressLine1: '123 Test St',
+            phone_number: '9999999999',
+            address: '123 Test St',
             city: 'Bengaluru',
+            district: 'Bengaluru Urban',
             state: 'Karnataka',
-            pincode: '560001',
+            postcode: '560001',
           },
+          paymentMethod: 'cod',
         },
-        description: 'Mock order creation until production API is connected',
+        description: 'Order creation via POST /api/public/orders',
       },
     ],
   })

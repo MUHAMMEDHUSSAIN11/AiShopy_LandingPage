@@ -5,7 +5,8 @@ import { isVariantPurchasable } from '@/lib/product-utils'
 import type { Catalog, CatalogQueryParams } from '@/types/catalog'
 import type { Category } from '@/types/category'
 import type { Product, ProductVariant } from '@/types/product'
-import type { Store } from '@/types/store'
+import type { CartOrderItem, OrderCreateResponse, ShippingAddress } from '@/types/customer'
+import type { Store, StorePaymentMethods } from '@/types/store'
 
 const AISHOOPY_API_URL =
   process.env.AISHOOPY_API_URL?.replace(/\/$/, '') ?? 'https://aishopy.up.railway.app'
@@ -18,6 +19,12 @@ const numericSchema = z.union([z.number(), z.string(), z.null()]).transform((val
   return Number.isFinite(parsed) ? parsed : 0
 })
 
+const apiPaymentMethodSchema = z
+  .object({
+    enabled: z.boolean(),
+  })
+  .passthrough()
+
 const apiStoreSchema = z
   .object({
     id: idSchema,
@@ -26,6 +33,7 @@ const apiStoreSchema = z
     description: z.string().nullable().optional(),
     logo_url: z.string().nullable().optional(),
     banner_url: z.string().nullable().optional(),
+    payment_methods: z.record(apiPaymentMethodSchema).optional(),
   })
   .passthrough()
 
@@ -54,6 +62,7 @@ const apiVariantSchema = z
     is_active: z.boolean().optional(),
     compare_at_price: numericSchema.nullable().optional(),
     mark_as_sold: z.boolean().optional(),
+    soldout: z.boolean().optional(),
     mark_as_non_inventory: z.boolean().optional(),
   })
   .passthrough()
@@ -80,6 +89,7 @@ const apiProductSchema = z
     is_active: z.boolean().optional(),
     status: z.string().optional(),
     mark_as_sold: z.boolean().optional(),
+    soldout: z.boolean().optional(),
     mark_as_non_inventory: z.boolean().optional(),
     variants: z.array(apiVariantSchema).optional().default([]),
   })
@@ -93,9 +103,62 @@ const apiCatalogDataSchema = z
   })
   .passthrough()
 
-const apiSuccessSchema = z.object({
+const apiCatalogSuccessSchema = z.object({
   success: z.literal(true),
   data: apiCatalogDataSchema,
+})
+
+const apiStoreSuccessSchema = z.object({
+  success: z.literal(true),
+  data: apiStoreSchema,
+})
+
+const apiAddressSchema = z
+  .object({
+    name: z.string().optional(),
+    phone_number: z.string().optional(),
+    address: z.string().optional(),
+    city: z.string().optional(),
+    district: z.string().optional(),
+    state: z.string().optional(),
+    postcode: z.string().optional(),
+  })
+  .passthrough()
+
+const apiCustomerSchema = z
+  .object({
+    name: z.string().optional(),
+    phone_number: z.string().optional(),
+    addresses: z.array(apiAddressSchema).optional(),
+    shipping_address: apiAddressSchema.optional(),
+  })
+  .passthrough()
+
+const apiCustomerByPhoneDataSchema = z
+  .object({
+    customer: apiCustomerSchema.optional(),
+    addresses: z.array(apiAddressSchema).optional(),
+  })
+  .passthrough()
+
+const apiCustomerByPhoneSuccessSchema = z.object({
+  success: z.literal(true),
+  data: apiCustomerByPhoneDataSchema,
+})
+
+const apiOrderDataSchema = z
+  .object({
+    id: idSchema.optional(),
+    order_id: idSchema.optional(),
+    order_number: z.string().optional(),
+  })
+  .passthrough()
+
+const apiOrderSuccessSchema = z.object({
+  success: z.literal(true),
+  data: apiOrderDataSchema.optional(),
+  order_id: idSchema.optional(),
+  orderId: idSchema.optional(),
 })
 
 const apiErrorSchema = z.object({
@@ -118,6 +181,16 @@ export class AishopyApiError extends Error {
   }
 }
 
+function mapPaymentMethods(
+  methods: Record<string, z.infer<typeof apiPaymentMethodSchema>> | undefined,
+): StorePaymentMethods | undefined {
+  if (!methods) return undefined
+
+  return Object.fromEntries(
+    Object.entries(methods).map(([key, value]) => [key, { enabled: value.enabled }]),
+  )
+}
+
 function mapStore(apiStore: z.infer<typeof apiStoreSchema>): Store {
   return {
     id: apiStore.id,
@@ -126,7 +199,12 @@ function mapStore(apiStore: z.infer<typeof apiStoreSchema>): Store {
     description: apiStore.description ?? undefined,
     logoUrl: apiStore.logo_url ?? undefined,
     bannerUrl: apiStore.banner_url ?? undefined,
+    paymentMethods: mapPaymentMethods(apiStore.payment_methods),
   }
+}
+
+function resolveSoldOut(apiEntity: { soldout?: boolean; mark_as_sold?: boolean }): boolean {
+  return apiEntity.soldout === true || apiEntity.mark_as_sold === true
 }
 
 function resolveStore(
@@ -185,7 +263,7 @@ function mapVariant(
     sku: apiVariant.sku ?? '',
     imageUrl: apiVariant.image_url ?? undefined,
     isActive: apiVariant.is_active !== false,
-    markAsSold: apiVariant.mark_as_sold ?? false,
+    markAsSold: resolveSoldOut(apiVariant),
     markAsNonInventory: apiVariant.mark_as_non_inventory ?? false,
   }
 }
@@ -219,7 +297,7 @@ function mapProduct(
     compareAtPrice: mapCompareAtPrice(apiProduct.compare_at_price ?? undefined),
     stock: apiProduct.stock_qty ?? apiProduct.stock ?? apiProduct.quantity ?? 0,
     trackInventory: apiProduct.track_inventory ?? true,
-    markAsSold: apiProduct.mark_as_sold ?? false,
+    markAsSold: resolveSoldOut(apiProduct),
     markAsNonInventory: apiProduct.mark_as_non_inventory ?? false,
     categoryId,
     categoryName,
@@ -294,7 +372,7 @@ export async function fetchPublicCatalog(
     throw new AishopyApiError(`Catalog API returned ${response.status}`)
   }
 
-  const successResult = apiSuccessSchema.safeParse(body)
+  const successResult = apiCatalogSuccessSchema.safeParse(body)
   if (!successResult.success) {
     throw new AishopyApiError('Unexpected catalog API response format')
   }
@@ -310,4 +388,205 @@ export async function fetchPublicCatalog(
   )
 
   return { store, categories, products }
+}
+
+async function fetchPublicApi(
+  storeSlug: string,
+  path: string,
+  init: RequestInit = {},
+): Promise<{ response: Response; body: unknown }> {
+  const url = `${AISHOOPY_API_URL}${path}`
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      'X-Store-Slug': storeSlug,
+      ...init.headers,
+    },
+    cache: 'no-store',
+  })
+
+  let body: unknown
+  try {
+    body = await response.json()
+  } catch {
+    throw new AishopyApiError(`Invalid response from ${path}`)
+  }
+
+  return { response, body }
+}
+
+function parseApiError(body: unknown, fallback: string): never {
+  const errorResult = apiErrorSchema.safeParse(body)
+  if (errorResult.success) {
+    throw new AishopyApiError(
+      errorResult.data.error?.message ?? fallback,
+      errorResult.data.error?.code,
+    )
+  }
+  throw new AishopyApiError(fallback)
+}
+
+export async function fetchPublicStore(storeSlug: string): Promise<Store> {
+  const { response, body } = await fetchPublicApi(storeSlug, '/api/public/store')
+
+  const errorResult = apiErrorSchema.safeParse(body)
+  if (errorResult.success) {
+    throw new AishopyApiError(
+      errorResult.data.error?.message ?? 'Store request failed',
+      errorResult.data.error?.code,
+    )
+  }
+
+  if (!response.ok) {
+    throw new AishopyApiError(`Store API returned ${response.status}`)
+  }
+
+  const wrapped = apiStoreSuccessSchema.safeParse(body)
+  if (wrapped.success) {
+    return mapStore(wrapped.data.data)
+  }
+
+  const direct = apiStoreSchema.safeParse(body)
+  if (direct.success) {
+    return mapStore(direct.data)
+  }
+
+  throw new AishopyApiError('Unexpected store API response format')
+}
+
+function mapShippingAddress(address: z.infer<typeof apiAddressSchema>): ShippingAddress {
+  return {
+    name: address.name ?? '',
+    phone_number: address.phone_number ?? '',
+    address: address.address ?? '',
+    city: address.city ?? '',
+    district: address.district ?? '',
+    state: address.state ?? '',
+    postcode: address.postcode ?? '',
+  }
+}
+
+export async function fetchCustomerByPhone(
+  storeSlug: string,
+  phoneNumber: string,
+): Promise<{ exists: boolean; addresses: ShippingAddress[]; name?: string }> {
+  const url = new URL(`${AISHOOPY_API_URL}/api/public/customers/by-phone`)
+  url.searchParams.set('phone_number', phoneNumber)
+
+  const { response, body } = await fetchPublicApi(storeSlug, `${url.pathname}${url.search}`)
+
+  if (response.status === 404) {
+    return { exists: false, addresses: [] }
+  }
+
+  const errorResult = apiErrorSchema.safeParse(body)
+  if (errorResult.success) {
+    if (errorResult.data.error?.code === 'CUSTOMER_NOT_FOUND') {
+      return { exists: false, addresses: [] }
+    }
+    throw new AishopyApiError(
+      errorResult.data.error?.message ?? 'Customer lookup failed',
+      errorResult.data.error?.code,
+    )
+  }
+
+  if (!response.ok) {
+    throw new AishopyApiError(`Customer API returned ${response.status}`)
+  }
+
+  const wrapped = apiCustomerByPhoneSuccessSchema.safeParse(body)
+  if (wrapped.success) {
+    const { customer, addresses: topLevelAddresses } = wrapped.data.data
+    const addresses = [
+      ...(topLevelAddresses ?? []).map(mapShippingAddress),
+      ...(customer?.addresses ?? []).map(mapShippingAddress),
+      ...(customer?.shipping_address ? [mapShippingAddress(customer.shipping_address)] : []),
+    ].filter((address) => address.address.trim().length > 0)
+
+    return {
+      exists: Boolean(customer || addresses.length > 0),
+      addresses,
+      name: customer?.name,
+    }
+  }
+
+  const customerOnly = apiCustomerSchema.safeParse(body)
+  if (customerOnly.success) {
+    const addresses = [
+      ...(customerOnly.data.addresses ?? []).map(mapShippingAddress),
+      ...(customerOnly.data.shipping_address
+        ? [mapShippingAddress(customerOnly.data.shipping_address)]
+        : []),
+    ].filter((address) => address.address.trim().length > 0)
+
+    return {
+      exists: addresses.length > 0 || Boolean(customerOnly.data.name),
+      addresses,
+      name: customerOnly.data.name,
+    }
+  }
+
+  return { exists: false, addresses: [] }
+}
+
+function resolveOrderId(body: z.infer<typeof apiOrderSuccessSchema>): string {
+  return (
+    body.data?.order_id ??
+    body.data?.id ??
+    body.data?.order_number ??
+    body.order_id ??
+    body.orderId ??
+    ''
+  )
+}
+
+export async function createPublicOrder(
+  storeSlug: string,
+  payload: {
+    shippingAddress: ShippingAddress
+    items: CartOrderItem[]
+    paymentMethod: string
+  },
+): Promise<OrderCreateResponse> {
+  const { response, body } = await fetchPublicApi(storeSlug, '/api/public/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      shipping_address: payload.shippingAddress,
+      items: payload.items.map((item) => ({
+        product_id: item.productId,
+        variant_id: item.variantId,
+        quantity: item.quantity,
+      })),
+      payment_method: payload.paymentMethod,
+    }),
+  })
+
+  const errorResult = apiErrorSchema.safeParse(body)
+  if (errorResult.success) {
+    throw new AishopyApiError(
+      errorResult.data.error?.message ?? 'Order creation failed',
+      errorResult.data.error?.code,
+    )
+  }
+
+  if (!response.ok) {
+    throw new AishopyApiError(`Order API returned ${response.status}`)
+  }
+
+  const successResult = apiOrderSuccessSchema.safeParse(body)
+  if (successResult.success) {
+    const orderId = resolveOrderId(successResult.data)
+    if (!orderId) {
+      throw new AishopyApiError('Order created but no order ID returned')
+    }
+    return { success: true, orderId }
+  }
+
+  const fallback = z.object({ orderId: idSchema }).safeParse(body)
+  if (fallback.success) {
+    return { success: true, orderId: fallback.data.orderId }
+  }
+
+  throw new AishopyApiError('Unexpected order API response format')
 }

@@ -19,19 +19,21 @@ export function isProductInStock(product: Product): boolean {
   return product.stock > 0
 }
 
+export function isProductSoldOut(product: Product, variant?: ProductVariant | null): boolean {
+  if (variant) return variant.markAsSold
+  return product.markAsSold
+}
+
 export function getProductStockLabel(product: Product, variant?: ProductVariant | null): string {
   if (variant) {
-    if (variant.markAsSold || (!variant.markAsNonInventory && variant.stock <= 0)) {
-      return 'Out of stock'
-    }
-    if (variant.markAsNonInventory) return 'In stock'
-    return `${variant.stock} in stock`
+    if (variant.markAsSold) return 'Sold Out'
+    if (!variant.markAsNonInventory && variant.stock <= 0) return 'Out of stock'
+    return 'Available'
   }
 
+  if (product.markAsSold) return 'Sold Out'
   if (!isProductInStock(product)) return 'Out of stock'
-  if (product.markAsNonInventory || !product.trackInventory) return 'In stock'
-  if (product.variants.length > 0) return 'Select options'
-  return `${product.stock} in stock`
+  return 'Available'
 }
 
 export function getDisplayPrice(product: Product, variant?: ProductVariant | null): number {
@@ -138,6 +140,16 @@ export function buildCartLineFromProduct(product: Product, variant?: ProductVari
   const price = getDisplayPrice(product, resolvedVariant)
   const images = getProductImages(product, resolvedVariant)
 
+  const markAsNonInventory = resolvedVariant
+    ? resolvedVariant.markAsNonInventory
+    : product.markAsNonInventory || !product.trackInventory
+
+  const maxQuantity = markAsNonInventory
+    ? undefined
+    : resolvedVariant
+      ? resolvedVariant.stock
+      : product.stock
+
   return {
     productId: product.id,
     variantId: resolvedVariant?.id,
@@ -146,6 +158,8 @@ export function buildCartLineFromProduct(product: Product, variant?: ProductVari
     variantName: resolvedVariant?.name,
     price,
     imageUrl: images[0] ?? '',
+    markAsNonInventory,
+    maxQuantity,
   }
 }
 

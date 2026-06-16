@@ -14,8 +14,10 @@ import {
   getDefaultVariant,
   getDisplayPrice,
   getProductImages,
+  getProductStockLabel,
   getVariantOptionGroups,
   isProductInStock,
+  isProductSoldOut,
   isVariantPurchasable,
   resolveVariantForSelection,
 } from '@/lib/product-utils'
@@ -56,6 +58,8 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
   const inStock = selectedVariant
     ? isVariantPurchasable(selectedVariant)
     : isProductInStock(product)
+  const soldOut = isProductSoldOut(product, selectedVariant)
+  const availabilityLabel = getProductStockLabel(product, selectedVariant)
   const selectedLabel = formatSelectedOptionsLabel(optionGroups, selectedOptions)
 
   const handleOptionSelect = (key: string, value: string) => {
@@ -111,6 +115,14 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
               ) : null}
             </div>
 
+            <p
+              className={`mt-2 text-sm font-medium ${
+                inStock ? 'text-brand-green' : 'text-gray-400'
+              }`}
+            >
+              {availabilityLabel}
+            </p>
+
             {optionGroups.length > 0 && (
               <div className="mt-6 space-y-4">
                 {optionGroups.map((group) => (
@@ -155,7 +167,7 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
                 disabled
                 className="mt-8 w-full cursor-not-allowed rounded-full bg-gray-200 px-6 py-4 text-base font-semibold text-gray-500"
               >
-                Out of Stock
+                {soldOut ? 'Sold Out' : 'Out of Stock'}
               </button>
             ) : (
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
