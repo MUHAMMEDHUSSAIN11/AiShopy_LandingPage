@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { slugify } from '@/lib/slugify'
 import { isVariantPurchasable } from '@/lib/product-utils'
 import type { Catalog, CatalogQueryParams } from '@/types/catalog'
+import { flattenCategories } from '@/types/category'
 import type { Category } from '@/types/category'
 import type { Product, ProductVariant } from '@/types/product'
 import type { CartOrderItem, OrderCreateResponse, ShippingAddress } from '@/types/customer'
@@ -37,17 +38,33 @@ const apiStoreSchema = z
   })
   .passthrough()
 
-const apiCategorySchema = z
-  .object({
-    id: idSchema,
-    store_id: idSchema.optional(),
-    parent_id: idSchema.nullable().optional(),
-    name: z.string(),
-    image_url: z.string().nullable().optional(),
-    is_active: z.boolean().optional(),
-    description: z.string().nullable().optional(),
-  })
-  .passthrough()
+type ApiCategory = {
+  id: string
+  store_id?: string
+  parent_id?: string | null
+  name: string
+  image_url?: string | null
+  sort_order?: number
+  is_active?: boolean
+  description?: string | null
+  subcategories?: ApiCategory[]
+}
+
+const apiCategorySchema: z.ZodType<ApiCategory, z.ZodTypeDef, unknown> = z.lazy(() =>
+  z
+    .object({
+      id: idSchema,
+      store_id: idSchema.optional(),
+      parent_id: idSchema.nullable().optional(),
+      name: z.string(),
+      image_url: z.string().nullable().optional(),
+      sort_order: numericSchema.optional(),
+      is_active: z.boolean().optional(),
+      description: z.string().nullable().optional(),
+      subcategories: z.array(apiCategorySchema).optional(),
+    })
+    .passthrough(),
+)
 
 const apiVariantSchema = z
   .object({
@@ -60,9 +77,11 @@ const apiVariantSchema = z
     sku: z.string().nullable().optional(),
     image_url: z.string().nullable().optional(),
     is_active: z.boolean().optional(),
+    sort_order: numericSchema.optional(),
     compare_at_price: numericSchema.nullable().optional(),
     mark_as_sold: z.boolean().optional(),
     soldout: z.boolean().optional(),
+    sold_out: z.boolean().optional(),
     mark_as_non_inventory: z.boolean().optional(),
   })
   .passthrough()
@@ -87,9 +106,11 @@ const apiProductSchema = z
     image_urls: z.array(z.string()).optional(),
     thumbnail_url: z.string().nullable().optional(),
     is_active: z.boolean().optional(),
+    sort_order: numericSchema.optional(),
     status: z.string().optional(),
     mark_as_sold: z.boolean().optional(),
     soldout: z.boolean().optional(),
+    sold_out: z.boolean().optional(),
     mark_as_non_inventory: z.boolean().optional(),
     variants: z.array(apiVariantSchema).optional().default([]),
   })
@@ -203,8 +224,12 @@ function mapStore(apiStore: z.infer<typeof apiStoreSchema>): Store {
   }
 }
 
-function resolveSoldOut(apiEntity: { soldout?: boolean; mark_as_sold?: boolean }): boolean {
-  return apiEntity.soldout === true || apiEntity.mark_as_sold === true
+function resolveSoldOut(apiEntity: {
+  soldout?: boolean
+  sold_out?: boolean
+  mark_as_sold?: boolean
+}): boolean {
+  return apiEntity.soldout === true || apiEntity.sold_out === true || apiEntity.mark_as_sold === true
 }
 
 function resolveStore(
@@ -223,12 +248,23 @@ function resolveStore(
   }
 }
 
-function mapCategory(apiCategory: z.infer<typeof apiCategorySchema>): Category {
+function bySortOrder(a: { sort_order?: number }, b: { sort_order?: number }): number {
+  return (a.sort_order ?? 0) - (b.sort_order ?? 0)
+}
+
+function mapCategory(apiCategory: ApiCategory): Category {
+  const subcategories = (apiCategory.subcategories ?? [])
+    .filter(isActiveCategory)
+    .sort(bySortOrder)
+    .map(mapCategory)
+
   return {
     id: apiCategory.id,
     name: apiCategory.name,
     parentId: apiCategory.parent_id ?? undefined,
     imageUrl: apiCategory.image_url ?? undefined,
+    sortOrder: apiCategory.sort_order ?? 0,
+    subcategories: subcategories.length > 0 ? subcategories : undefined,
   }
 }
 
@@ -280,6 +316,7 @@ function mapProduct(
   const basePrice = apiProduct.base_price ?? apiProduct.price ?? 0
   const variants = (apiProduct.variants ?? [])
     .filter((variant) => variant.is_active !== false)
+    .sort(bySortOrder)
     .map((variant) => mapVariant(variant, basePrice))
 
   const slug =
@@ -314,7 +351,7 @@ function mapProduct(
   return product
 }
 
-function isActiveCategory(category: z.infer<typeof apiCategorySchema>): boolean {
+function isActiveCategory(category: ApiCategory): boolean {
   return category.is_active !== false
 }
 
@@ -382,10 +419,14 @@ export async function fetchPublicCatalog(
     data.store?.id ?? data.products[0]?.store_id ?? data.categories[0]?.store_id ?? ''
 
   const store = resolveStore(storeSlug, data.store, storeId)
-  const categories = data.categories.filter(isActiveCategory).map(mapCategory)
-  const products = data.products.filter(isActiveProduct).map((product) =>
-    mapProduct(product, store, categories),
-  )
+  const categories = data.categories.filter(isActiveCategory).sort(bySortOrder).map(mapCategory)
+  // Flatten the tree (parents + subcategories) so products in any nested
+  // category can still resolve their category name.
+  const flatCategories = flattenCategories(categories)
+  const products = data.products
+    .filter(isActiveProduct)
+    .sort(bySortOrder)
+    .map((product) => mapProduct(product, store, flatCategories))
 
   return { store, categories, products }
 }

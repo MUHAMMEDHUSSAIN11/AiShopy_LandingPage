@@ -6,7 +6,7 @@ import StoreSidebarPanel from '@/components/store/StoreSidebarPanel'
 import CategoryToggler from '@/components/store/CategoryToggler'
 import ProductSearchBar from '@/components/store/ProductSearchBar'
 import ProductGrid from '@/components/store/ProductGrid'
-import type { Category } from '@/types/category'
+import { flattenCategories, type Category } from '@/types/category'
 import type { Product } from '@/types/product'
 import type { Store } from '@/types/store'
 
@@ -35,7 +35,10 @@ export default function StoreCatalogContent({
 
   const activeCategoryName = useMemo(() => {
     if (!activeCategoryId) return ALL_CATEGORY.name
-    return categories.find((category) => category.id === activeCategoryId)?.name ?? 'All'
+    return (
+      flattenCategories(categories).find((category) => category.id === activeCategoryId)?.name ??
+      'All'
+    )
   }, [activeCategoryId, categories])
 
   const handleCategoryChange = useCallback(

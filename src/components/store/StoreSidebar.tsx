@@ -62,23 +62,11 @@ export default function StoreSidebar({
             </button>
 
             {categoriesOpen && (
-              <ul className="mt-1 space-y-0.5 border-l-2 border-green-100 pl-3">
-                {categories.map((category) => (
-                  <li key={category.id || 'all'}>
-                    <button
-                      type="button"
-                      onClick={() => handleCategorySelect(category.id)}
-                      className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium tracking-wide transition ${
-                        activeCategoryId === category.id
-                          ? 'bg-brand-green text-white'
-                          : 'text-gray-600 hover:bg-green-50 hover:text-brand-green'
-                      }`}
-                    >
-                      {category.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <CategoryTree
+                categories={categories}
+                activeCategoryId={activeCategoryId}
+                onSelect={handleCategorySelect}
+              />
             )}
           </li>
         </ul>
@@ -86,5 +74,47 @@ export default function StoreSidebar({
 
       <SidebarWatermark className="shrink-0" />
     </div>
+  )
+}
+
+type CategoryTreeProps = {
+  categories: Category[]
+  activeCategoryId: string
+  onSelect: (categoryId: string) => void
+  depth?: number
+}
+
+function CategoryTree({ categories, activeCategoryId, onSelect, depth = 0 }: CategoryTreeProps) {
+  return (
+    <ul
+      className={`space-y-0.5 ${
+        depth === 0 ? 'mt-1 border-l-2 border-green-100 pl-3' : 'mt-0.5 border-l border-green-100 pl-3'
+      }`}
+    >
+      {categories.map((category) => (
+        <li key={category.id || 'all'}>
+          <button
+            type="button"
+            onClick={() => onSelect(category.id)}
+            className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium tracking-wide transition ${
+              activeCategoryId === category.id
+                ? 'bg-brand-green text-white'
+                : 'text-gray-600 hover:bg-green-50 hover:text-brand-green'
+            }`}
+          >
+            {category.name}
+          </button>
+
+          {category.subcategories?.length ? (
+            <CategoryTree
+              categories={category.subcategories}
+              activeCategoryId={activeCategoryId}
+              onSelect={onSelect}
+              depth={depth + 1}
+            />
+          ) : null}
+        </li>
+      ))}
+    </ul>
   )
 }
