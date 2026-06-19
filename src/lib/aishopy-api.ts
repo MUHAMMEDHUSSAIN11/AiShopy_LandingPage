@@ -390,28 +390,19 @@ export async function fetchPublicCatalog(
   return { store, categories, products }
 }
 
-type CacheStrategy = { revalidate: number; tags?: string[] }
-
 async function fetchPublicApi(
   storeSlug: string,
   path: string,
   init: RequestInit = {},
-  cacheStrategy?: CacheStrategy,
 ): Promise<{ response: Response; body: unknown }> {
   const url = `${AISHOOPY_API_URL}${path}`
-  // Store identity (logo/name/payment config) changes rarely, so it can be
-  // cached + revalidated by tag. Everything else stays dynamic (no-store).
-  const cacheInit: RequestInit = cacheStrategy
-    ? { next: { revalidate: cacheStrategy.revalidate, tags: cacheStrategy.tags } }
-    : { cache: 'no-store' }
-
   const response = await fetch(url, {
     ...init,
     headers: {
       'X-Store-Slug': storeSlug,
       ...init.headers,
     },
-    ...cacheInit,
+    cache: 'no-store',
   })
 
   let body: unknown
@@ -435,16 +426,8 @@ function parseApiError(body: unknown, fallback: string): never {
   throw new AishopyApiError(fallback)
 }
 
-/** Cache tag for a store's identity data — call `revalidateTag()` with this on store updates. */
-export function storeCacheTag(storeSlug: string): string {
-  return `store:${storeSlug}`
-}
-
 export async function fetchPublicStore(storeSlug: string): Promise<Store> {
-  const { response, body } = await fetchPublicApi(storeSlug, '/api/public/store', {}, {
-    revalidate: 300,
-    tags: [storeCacheTag(storeSlug)],
-  })
+  const { response, body } = await fetchPublicApi(storeSlug, '/api/public/store')
 
   const errorResult = apiErrorSchema.safeParse(body)
   if (errorResult.success) {
