@@ -1,7 +1,7 @@
 import StoreCatalogContent from '@/components/store/StoreCatalogContent'
 import ErrorMessage from '@/components/store/ErrorMessage'
 import { getCatalog } from '@/lib/catalog'
-import { StoreNotFoundError } from '@/lib/store'
+import { getStoreBySlug, StoreNotFoundError } from '@/lib/store'
 
 type StoreCatalogProps = {
   storeSlug: string
@@ -9,12 +9,18 @@ type StoreCatalogProps = {
 
 export default async function StoreCatalog({ storeSlug }: StoreCatalogProps) {
   try {
-    const catalog = await getCatalog(storeSlug)
+    // The catalog endpoint only returns categories/products (no store object),
+    // so resolve the store (name, logo, payment methods) from the dedicated
+    // store endpoint, consistent with the product/cart pages.
+    const [store, catalog] = await Promise.all([
+      getStoreBySlug(storeSlug),
+      getCatalog(storeSlug),
+    ])
 
     return (
       <StoreCatalogContent
         storeSlug={storeSlug}
-        store={catalog.store}
+        store={store}
         categories={catalog.categories}
         initialProducts={catalog.products}
       />

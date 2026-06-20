@@ -134,6 +134,17 @@ const apiStoreSuccessSchema = z.object({
   data: apiStoreSchema,
 })
 
+// The live store endpoint nests the store under `data.store` alongside other
+// fields (e.g. `subdomainUrl`), so support that shape too.
+const apiStoreNestedSuccessSchema = z.object({
+  success: z.literal(true),
+  data: z
+    .object({
+      store: apiStoreSchema,
+    })
+    .passthrough(),
+})
+
 const apiAddressSchema = z
   .object({
     name: z.string().optional(),
@@ -485,6 +496,11 @@ export async function fetchPublicStore(storeSlug: string): Promise<Store> {
 
   if (!response.ok) {
     throw new AishopyApiError(`Store API returned ${response.status}`)
+  }
+
+  const nested = apiStoreNestedSuccessSchema.safeParse(body)
+  if (nested.success) {
+    return mapStore(nested.data.data.store)
   }
 
   const wrapped = apiStoreSuccessSchema.safeParse(body)

@@ -68,19 +68,19 @@ export default function ProductCard({ storeSlug, product }: ProductCardProps) {
         )}
       </Link>
 
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
         <Link href={`/product/${product.slug}`}>
-          <h2 className="line-clamp-2 font-semibold text-brand-dark hover:text-brand-green">
+          <h2 className="line-clamp-2 text-sm font-semibold text-brand-dark hover:text-brand-green sm:text-base">
             {product.name}
           </h2>
         </Link>
-        <div className="mt-2 flex flex-wrap items-baseline gap-2">
-          <p className="text-lg font-bold text-brand-green">
+        <div className="mt-1.5 flex flex-wrap items-baseline gap-2 sm:mt-2">
+          <p className="text-base font-bold text-brand-green sm:text-lg">
             {prefix ? `${prefix} ` : ''}
             {formatPrice(price)}
           </p>
           {compareAtPrice ? (
-            <p className="text-sm text-gray-400 line-through">{formatPrice(compareAtPrice)}</p>
+            <p className="text-xs text-gray-400 line-through sm:text-sm">{formatPrice(compareAtPrice)}</p>
           ) : null}
         </div>
 
@@ -92,10 +92,10 @@ export default function ProductCard({ storeSlug, product }: ProductCardProps) {
           {availabilityLabel}
         </p>
 
-        <div className="mt-4 flex flex-col gap-2">
+        <div className="mt-3 flex flex-col gap-2 sm:mt-4">
           <Link
             href={`/product/${product.slug}`}
-            className="inline-flex w-full items-center justify-center rounded-full border border-gray-300 px-4 py-2.5 text-sm font-semibold text-brand-dark transition hover:border-brand-dark hover:bg-gray-50"
+            className="inline-flex w-full items-center justify-center rounded-full border border-gray-300 px-4 py-2 text-xs font-semibold text-brand-dark transition hover:border-brand-dark hover:bg-gray-50 sm:py-2.5 sm:text-sm"
           >
             View Product
           </Link>
@@ -103,7 +103,7 @@ export default function ProductCard({ storeSlug, product }: ProductCardProps) {
           {!outOfStock && inCart ? (
             <Link
               href="/cart"
-              className="w-full rounded-full border border-brand-green px-4 py-2.5 text-center text-sm font-semibold text-brand-green transition hover:bg-green-50"
+              className="w-full rounded-full border border-brand-green px-4 py-2 text-center text-xs font-semibold text-brand-green transition hover:bg-green-50 sm:py-2.5 sm:text-sm"
             >
               Go to Cart
             </Link>
@@ -112,7 +112,7 @@ export default function ProductCard({ storeSlug, product }: ProductCardProps) {
               type="button"
               onClick={handleAddToCart}
               disabled={outOfStock}
-              className="w-full rounded-full bg-brand-green px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+              className="w-full rounded-full bg-brand-green px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 sm:py-2.5 sm:text-sm"
             >
               {outOfStock ? (soldOut ? 'Sold Out' : 'Out of Stock') : added ? 'Added ✓' : 'Add to Cart'}
             </button>

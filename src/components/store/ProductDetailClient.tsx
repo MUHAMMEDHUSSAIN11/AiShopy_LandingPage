@@ -102,8 +102,8 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+        <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
           <ProductImageGallery images={images} alt={product.name} />
 
           <div>
@@ -112,10 +112,10 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
             </p>
             <h1 className="mt-2 text-2xl font-bold text-brand-dark sm:text-3xl">{product.name}</h1>
 
-            <div className="mt-4 flex flex-wrap items-baseline gap-3">
-              <p className="text-3xl font-bold text-brand-green">{formatPrice(price)}</p>
+            <div className="mt-3 flex flex-wrap items-baseline gap-3 sm:mt-4">
+              <p className="text-2xl font-bold text-brand-green sm:text-3xl">{formatPrice(price)}</p>
               {compareAtPrice ? (
-                <p className="text-lg text-gray-400 line-through">{formatPrice(compareAtPrice)}</p>
+                <p className="text-base text-gray-400 line-through sm:text-lg">{formatPrice(compareAtPrice)}</p>
               ) : null}
             </div>
 
@@ -128,7 +128,7 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
             </p>
 
             {optionGroups.length > 0 && (
-              <div className="mt-6 space-y-4">
+              <div className="mt-4 space-y-3 sm:mt-6 sm:space-y-4">
                 {optionGroups.map((group) => (
                   <div key={group.key}>
                     <p className="text-sm font-semibold text-gray-700">{group.key}</p>
@@ -163,23 +163,23 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
               <p className="mt-4 text-sm font-medium text-brand-green">{addedMessage}</p>
             ) : null}
 
-            <p className="mt-6 leading-relaxed text-gray-600">{product.description}</p>
+            <p className="mt-4 text-sm leading-relaxed text-gray-600 sm:mt-6 sm:text-base">{product.description}</p>
 
             {!inStock ? (
               <button
                 type="button"
                 disabled
-                className="mt-8 w-full cursor-not-allowed rounded-full bg-gray-200 px-6 py-4 text-base font-semibold text-gray-500"
+                className="mt-6 w-full cursor-not-allowed rounded-full bg-gray-200 px-6 py-3 text-sm font-semibold text-gray-500 sm:mt-8 sm:py-4 sm:text-base"
               >
                 {soldOut ? 'Sold Out' : 'Out of Stock'}
               </button>
             ) : (
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
                 {inCart ? (
                   <button
                     type="button"
                     onClick={() => router.push('/cart')}
-                    className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-4 text-base font-semibold text-brand-green transition hover:bg-green-50"
+                    className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-3 text-sm font-semibold text-brand-green transition hover:bg-green-50 sm:py-4 sm:text-base"
                   >
                     Go to Cart
                   </button>
@@ -188,7 +188,7 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
                     type="button"
                     disabled={isAdding}
                     onClick={() => handleAddToCart(false)}
-                    className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-4 text-base font-semibold text-brand-green transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-3 text-sm font-semibold text-brand-green transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60 sm:py-4 sm:text-base"
                   >
                     Add to Cart
                   </button>
@@ -197,7 +197,7 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
                   type="button"
                   disabled={isAdding}
                   onClick={() => handleAddToCart(true)}
-                  className="inline-flex flex-1 items-center justify-center rounded-full bg-brand-green px-6 py-4 text-base font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex flex-1 items-center justify-center rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60 sm:py-4 sm:text-base"
                 >
                   Buy Now
                 </button>
