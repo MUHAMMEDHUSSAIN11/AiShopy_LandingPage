@@ -7,11 +7,13 @@ import { formatPrice } from '@/lib/format'
 import {
   buildCartLineFromProduct,
   getCardPriceLabel,
+  getDefaultVariant,
   getProductStockLabel,
   isProductInStock,
   isProductSoldOut,
 } from '@/lib/product-utils'
 import { useCartStore } from '@/stores/cart-store'
+import { buildCartItemId } from '@/types/cart'
 import type { Product } from '@/types/product'
 
 type ProductCardProps = {
@@ -23,6 +25,10 @@ export default function ProductCard({ storeSlug, product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem)
   const [added, setAdded] = useState(false)
   const isAddingRef = useRef(false)
+
+  const defaultVariantId = getDefaultVariant(product)?.id
+  const cartItemId = buildCartItemId(product.id, defaultVariantId)
+  const inCart = useCartStore((state) => state.items.some((line) => line.id === cartItemId))
 
   const imageUrl = product.imageUrls[0]
   const soldOut = isProductSoldOut(product)
@@ -94,14 +100,23 @@ export default function ProductCard({ storeSlug, product }: ProductCardProps) {
             View Product
           </Link>
 
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            disabled={outOfStock}
-            className="w-full rounded-full bg-brand-green px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
-          >
-            {outOfStock ? (soldOut ? 'Sold Out' : 'Out of Stock') : added ? 'Added ✓' : 'Add to Cart'}
-          </button>
+          {!outOfStock && inCart ? (
+            <Link
+              href="/cart"
+              className="w-full rounded-full border border-brand-green px-4 py-2.5 text-center text-sm font-semibold text-brand-green transition hover:bg-green-50"
+            >
+              Go to Cart
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={outOfStock}
+              className="w-full rounded-full bg-brand-green px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+            >
+              {outOfStock ? (soldOut ? 'Sold Out' : 'Out of Stock') : added ? 'Added ✓' : 'Add to Cart'}
+            </button>
+          )}
         </div>
       </div>
     </article>

@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createCartOrder, lookupCustomerByPhone } from '@/lib/customer'
 import { checkoutSchema, phoneSchema, type CheckoutFormData } from '@/lib/checkout-schema'
 import { formatPrice } from '@/lib/format'
@@ -28,7 +28,7 @@ type CheckoutExperienceProps = {
 }
 
 type FormErrors = Partial<Record<keyof CheckoutFormData, string>>
-type Step = 'phone' | 'details' | 'success'
+type Step = 'phone' | 'details'
 
 const FALLBACK_PAYMENT_METHOD = { key: 'cod', label: 'Cash on Delivery' }
 
@@ -66,6 +66,8 @@ export default function CheckoutExperience({
   emptyState,
   onOrderPlaced,
 }: CheckoutExperienceProps) {
+  const router = useRouter()
+
   const paymentOptions = useMemo(() => {
     const enabled = getEnabledPaymentMethods(store)
     return enabled.length > 0 ? enabled : [FALLBACK_PAYMENT_METHOD]
@@ -78,14 +80,15 @@ export default function CheckoutExperience({
   const [errors, setErrors] = useState<FormErrors>({})
   const [savedAddresses, setSavedAddresses] = useState<ShippingAddress[]>([])
   const [selectedAddressIndex, setSelectedAddressIndex] = useState<number | null>(null)
+  const [addressModalOpen, setAddressModalOpen] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState(paymentOptions[0]?.key ?? '')
   const [loading, setLoading] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  const [orderId, setOrderId] = useState('')
+  const [redirecting, setRedirecting] = useState(false)
 
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
-  if (items.length === 0 && step !== 'success') {
+  if (items.length === 0 && !redirecting) {
     return <>{emptyState}</>
   }
 
@@ -104,16 +107,15 @@ export default function CheckoutExperience({
     try {
       const response = await lookupCustomerByPhone(store.slug, cleaned)
       setSavedAddresses(response.addresses)
-
-      if (response.addresses.length > 0) {
-        setSelectedAddressIndex(0)
-        setForm(addressToForm(response.addresses[0], cleaned))
-      } else {
-        setSelectedAddressIndex(null)
-        setForm({ ...emptyForm, phone_number: cleaned, name: response.name ?? '' })
-      }
-
+      setSelectedAddressIndex(null)
+      setForm({ ...emptyForm, phone_number: cleaned, name: response.name ?? '' })
       setStep('details')
+
+      // If the customer has saved addresses, let them pick one in a modal;
+      // otherwise they simply fill in a new address.
+      if (response.addresses.length > 0) {
+        setAddressModalOpen(true)
+      }
     } catch {
       setPhoneError('Could not verify phone number. Please try again.')
     } finally {
@@ -127,12 +129,14 @@ export default function CheckoutExperience({
     setSelectedAddressIndex(index)
     setForm(addressToForm(address, form.phone_number))
     setErrors({})
+    setAddressModalOpen(false)
   }
 
   const handleUseNewAddress = () => {
     setSelectedAddressIndex(null)
     setForm({ ...emptyForm, phone_number: form.phone_number })
     setErrors({})
+    setAddressModalOpen(false)
   }
 
   const handleChange = (field: keyof CheckoutFormData, value: string) => {
@@ -174,38 +178,19 @@ export default function CheckoutExperience({
         shippingAddress: result.data,
         paymentMethod,
       })
-      setOrderId(response.orderId)
+      setRedirecting(true)
       onOrderPlaced?.()
-      setStep('success')
+      router.push(`/order/success?orderId=${encodeURIComponent(response.orderId)}`)
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : 'Failed to place your order. Please try again.',
       )
-    } finally {
       setLoading(false)
     }
   }
 
-  if (step === 'success') {
-    return (
-      <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center">
-        <div className="text-4xl">✓</div>
-        <h2 className="mt-4 text-2xl font-bold text-brand-dark">Order Placed!</h2>
-        <p className="mt-2 text-gray-600">
-          Your order <span className="font-semibold">{orderId}</span> has been submitted to{' '}
-          {store.name}. They will contact you shortly.
-        </p>
-        <Link
-          href="/"
-          className="mt-6 inline-block rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-600"
-        >
-          Continue Shopping
-        </Link>
-      </div>
-    )
-  }
-
   return (
+    <>
     <div className="space-y-8">
       <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         {items.map((item) => (
@@ -285,40 +270,25 @@ export default function CheckoutExperience({
           </div>
 
           {savedAddresses.length > 0 ? (
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-gray-700">Saved addresses</p>
-              <div className="space-y-2">
-                {savedAddresses.map((address, index) => {
-                  const isSelected = selectedAddressIndex === index
-                  return (
-                    <button
-                      key={`${address.address}-${index}`}
-                      type="button"
-                      onClick={() => handleSelectSavedAddress(index)}
-                      className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition ${
-                        isSelected
-                          ? 'border-brand-green bg-green-50'
-                          : 'border-gray-200 bg-white hover:border-brand-green'
-                      }`}
-                    >
-                      <span className="font-semibold text-brand-dark">{address.name || 'Saved address'}</span>
-                      <span className="mt-0.5 block text-gray-500">{summariseAddress(address)}</span>
-                    </button>
-                  )
-                })}
-                <button
-                  type="button"
-                  onClick={handleUseNewAddress}
-                  className={`w-full rounded-xl border border-dashed px-4 py-3 text-left text-sm font-medium transition ${
-                    selectedAddressIndex === null
-                      ? 'border-brand-green text-brand-green'
-                      : 'border-gray-300 text-gray-600 hover:border-brand-green hover:text-brand-green'
-                  }`}
-                >
-                  + Enter a new address
-                </button>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setAddressModalOpen(true)}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-left text-sm transition hover:border-brand-green"
+            >
+              {selectedAddressIndex !== null && savedAddresses[selectedAddressIndex] ? (
+                <span className="min-w-0">
+                  <span className="font-semibold text-brand-dark">
+                    {savedAddresses[selectedAddressIndex].name || 'Saved address'}
+                  </span>
+                  <span className="mt-0.5 block truncate text-gray-500">
+                    {summariseAddress(savedAddresses[selectedAddressIndex])}
+                  </span>
+                </span>
+              ) : (
+                <span className="font-medium text-brand-green">Choose a saved address</span>
+              )}
+              <span className="ml-3 shrink-0 text-sm font-medium text-brand-green">Change</span>
+            </button>
           ) : null}
 
           <div className="space-y-4">
@@ -422,6 +392,73 @@ export default function CheckoutExperience({
         </form>
       )}
     </div>
+
+    {addressModalOpen ? (
+      <div
+        className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Choose delivery address"
+        onClick={() => setAddressModalOpen(false)}
+      >
+        <div
+          className="flex max-h-[85vh] w-full max-w-md flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+            <div>
+              <h3 className="text-lg font-bold text-brand-dark">Choose delivery address</h3>
+              <p className="mt-0.5 text-sm text-gray-500">Select a saved address or add a new one.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAddressModalOpen(false)}
+              aria-label="Close"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-brand-dark"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="flex-1 space-y-2 overflow-y-auto px-5 py-4">
+            {savedAddresses.map((address, index) => {
+              const isSelected = selectedAddressIndex === index
+              return (
+                <button
+                  key={`${address.address}-${index}`}
+                  type="button"
+                  onClick={() => handleSelectSavedAddress(index)}
+                  className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition ${
+                    isSelected
+                      ? 'border-brand-green bg-green-50'
+                      : 'border-gray-200 bg-white hover:border-brand-green'
+                  }`}
+                >
+                  <span className="font-semibold text-brand-dark">{address.name || 'Saved address'}</span>
+                  <span className="mt-0.5 block text-gray-500">{summariseAddress(address)}</span>
+                  {address.phone_number ? (
+                    <span className="mt-0.5 block text-xs text-gray-400">{address.phone_number}</span>
+                  ) : null}
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="border-t border-gray-100 px-5 py-4">
+            <button
+              type="button"
+              onClick={handleUseNewAddress}
+              className="w-full rounded-full border border-dashed border-brand-green px-4 py-3 text-sm font-semibold text-brand-green transition hover:bg-green-50"
+            >
+              + Enter a new address
+            </button>
+          </div>
+        </div>
+      </div>
+    ) : null}
+    </>
   )
 }
 

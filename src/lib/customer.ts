@@ -36,7 +36,7 @@ export async function lookupCustomerByPhone(
   phoneNumber: string,
 ): Promise<CustomerByPhoneResponse> {
   const url = new URL(`${PUBLIC_API_BASE}/api/public/customers/by-phone`)
-  url.searchParams.set('phone_number', phoneNumber)
+  url.searchParams.set('phone', phoneNumber)
 
   let response: Response
   try {
@@ -64,6 +64,7 @@ export async function lookupCustomerByPhone(
 
   const rawAddresses: unknown[] = [
     ...((data.addresses as unknown[]) ?? []),
+    ...((customer?.shipping_addresses as unknown[]) ?? []),
     ...((customer?.addresses as unknown[]) ?? []),
     ...(customer?.shipping_address ? [customer.shipping_address] : []),
   ]
@@ -115,10 +116,23 @@ export async function createCartOrder(
   }
 
   const data = ((body?.data as Record<string, unknown>) ?? body ?? {}) as Record<string, unknown>
-  const orderId =
-    data.order_id ?? data.id ?? data.order_number ?? body?.order_id ?? body?.orderId ?? ''
+  const order = (data.order as Record<string, unknown> | undefined) ?? {}
 
-  if (!orderId) {
+  // The id can live at data.order.id (current API), or various flatter shapes.
+  // IDs may be integers or strings — accept either and normalise to a string.
+  // Guard explicitly so a numeric id of 0 isn't dropped.
+  const orderId =
+    order.id ??
+    order.order_number ??
+    data.order_id ??
+    data.id ??
+    data.order_number ??
+    order.checkout_token ??
+    data.checkout_token ??
+    body?.order_id ??
+    body?.orderId
+
+  if (orderId === undefined || orderId === null || orderId === '') {
     throw new Error('Order created but no order ID returned')
   }
 

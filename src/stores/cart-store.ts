@@ -35,6 +35,7 @@ type CartState = {
   addItem: (storeSlug: string, item: AddCartItemInput) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
+  reconcileItems: (available: Omit<CartItem, 'quantity'>[]) => void
   clearCart: () => void
   totalCount: () => number
   totalPrice: () => number
@@ -96,6 +97,28 @@ export const useCartStore = create<CartState>()(
             line.id === id ? { ...line, quantity: clampToStock(line, quantity) } : line,
           ),
         }))
+      },
+
+      reconcileItems: (available) => {
+        set((state) => {
+          if (state.items.length === 0) return state
+
+          const map = new Map(available.map((entry) => [entry.id, entry]))
+
+          const items = state.items.reduce<CartItem[]>((acc, item) => {
+            const fresh = map.get(item.id)
+            // Drop items that no longer exist or are no longer purchasable
+            // (deleted in the DB, deactivated, or sold out).
+            if (!fresh) return acc
+
+            // Refresh price/stock/name from the catalog and clamp quantity.
+            const merged: CartItem = { ...fresh, quantity: item.quantity }
+            acc.push({ ...merged, quantity: clampToStock(merged, item.quantity) })
+            return acc
+          }, [])
+
+          return { items, storeSlug: items.length === 0 ? null : state.storeSlug }
+        })
       },
 
       clearCart: () => set({ items: [], storeSlug: null }),

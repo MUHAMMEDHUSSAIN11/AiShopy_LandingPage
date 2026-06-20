@@ -22,6 +22,7 @@ import {
   resolveVariantForSelection,
 } from '@/lib/product-utils'
 import { useCartStore } from '@/stores/cart-store'
+import { buildCartItemId } from '@/types/cart'
 import type { Product } from '@/types/product'
 import type { Store } from '@/types/store'
 
@@ -51,6 +52,9 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
     if (product.variants.length === 0) return null
     return findVariantByOptions(product.variants, selectedOptions)
   }, [product.variants, selectedOptions])
+
+  const cartItemId = buildCartItemId(product.id, selectedVariant?.id)
+  const inCart = useCartStore((state) => state.items.some((line) => line.id === cartItemId))
 
   const images = getProductImages(product, selectedVariant)
   const price = getDisplayPrice(product, selectedVariant)
@@ -171,14 +175,24 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
               </button>
             ) : (
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  disabled={isAdding}
-                  onClick={() => handleAddToCart(false)}
-                  className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-4 text-base font-semibold text-brand-green transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  Add to Cart
-                </button>
+                {inCart ? (
+                  <button
+                    type="button"
+                    onClick={() => router.push('/cart')}
+                    className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-4 text-base font-semibold text-brand-green transition hover:bg-green-50"
+                  >
+                    Go to Cart
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={isAdding}
+                    onClick={() => handleAddToCart(false)}
+                    className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-4 text-base font-semibold text-brand-green transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Add to Cart
+                  </button>
+                )}
                 <button
                   type="button"
                   disabled={isAdding}

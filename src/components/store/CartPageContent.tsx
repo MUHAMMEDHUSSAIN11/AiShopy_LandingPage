@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import BackLink from '@/components/store/BackLink'
 import StoreHeader from '@/components/store/StoreHeader'
+import { useCartReconcile } from '@/hooks/use-cart-reconcile'
 import { formatPrice } from '@/lib/format'
 import { useCartStore } from '@/stores/cart-store'
 import { canIncreaseCartQuantity } from '@/types/cart'
@@ -20,6 +21,8 @@ export default function CartPageContent({ store }: CartPageContentProps) {
   const updateQuantity = useCartStore((state) => state.updateQuantity)
   const removeItem = useCartStore((state) => state.removeItem)
   const totalPrice = useCartStore((state) => state.totalPrice())
+
+  useCartReconcile(store.slug)
 
   return (
     <div className="min-h-screen bg-gray-50">

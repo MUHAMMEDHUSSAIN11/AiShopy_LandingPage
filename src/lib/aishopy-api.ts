@@ -151,6 +151,7 @@ const apiCustomerSchema = z
     name: z.string().optional(),
     phone_number: z.string().optional(),
     addresses: z.array(apiAddressSchema).optional(),
+    shipping_addresses: z.array(apiAddressSchema).optional(),
     shipping_address: apiAddressSchema.optional(),
   })
   .passthrough()
@@ -516,7 +517,7 @@ export async function fetchCustomerByPhone(
   phoneNumber: string,
 ): Promise<{ exists: boolean; addresses: ShippingAddress[]; name?: string }> {
   const url = new URL(`${AISHOOPY_API_URL}/api/public/customers/by-phone`)
-  url.searchParams.set('phone_number', phoneNumber)
+  url.searchParams.set('phone', phoneNumber)
 
   const { response, body } = await fetchPublicApi(storeSlug, `${url.pathname}${url.search}`)
 
@@ -544,6 +545,7 @@ export async function fetchCustomerByPhone(
     const { customer, addresses: topLevelAddresses } = wrapped.data.data
     const addresses = [
       ...(topLevelAddresses ?? []).map(mapShippingAddress),
+      ...(customer?.shipping_addresses ?? []).map(mapShippingAddress),
       ...(customer?.addresses ?? []).map(mapShippingAddress),
       ...(customer?.shipping_address ? [mapShippingAddress(customer.shipping_address)] : []),
     ].filter((address) => address.address.trim().length > 0)
@@ -558,6 +560,7 @@ export async function fetchCustomerByPhone(
   const customerOnly = apiCustomerSchema.safeParse(body)
   if (customerOnly.success) {
     const addresses = [
+      ...(customerOnly.data.shipping_addresses ?? []).map(mapShippingAddress),
       ...(customerOnly.data.addresses ?? []).map(mapShippingAddress),
       ...(customerOnly.data.shipping_address
         ? [mapShippingAddress(customerOnly.data.shipping_address)]

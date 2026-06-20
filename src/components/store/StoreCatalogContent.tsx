@@ -6,6 +6,7 @@ import StoreSidebarPanel from '@/components/store/StoreSidebarPanel'
 import CategoryToggler from '@/components/store/CategoryToggler'
 import ProductSearchBar from '@/components/store/ProductSearchBar'
 import ProductGrid from '@/components/store/ProductGrid'
+import { useCartReconcile } from '@/hooks/use-cart-reconcile'
 import { flattenCategories, type Category } from '@/types/category'
 import type { Product } from '@/types/product'
 import type { Store } from '@/types/store'
@@ -30,6 +31,10 @@ export default function StoreCatalogContent({
   const [searchQuery, setSearchQuery] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+
+  // Reconcile the persisted cart against the full catalog so deleted/sold-out
+  // items are dropped. Use the unfiltered initial products, not the filtered view.
+  useCartReconcile(storeSlug, initialProducts)
 
   const sidebarCategories = useMemo(() => [ALL_CATEGORY, ...categories], [categories])
 
