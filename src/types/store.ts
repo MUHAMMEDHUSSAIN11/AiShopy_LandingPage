@@ -1,8 +1,28 @@
 export interface PaymentMethod {
   enabled: boolean
+  // UPI-only metadata (where the customer should send the payment).
+  vpa?: string
+  displayName?: string
+  qrImageUrl?: string
 }
 
 export type StorePaymentMethods = Record<string, PaymentMethod>
+
+export interface StoreUpiDetails {
+  vpa?: string
+  displayName?: string
+  qrImageUrl?: string
+}
+
+export function getStoreUpiDetails(store: Store): StoreUpiDetails | null {
+  const upi = store.paymentMethods?.upi
+  if (!upi || !upi.enabled) return null
+  return {
+    vpa: upi.vpa,
+    displayName: upi.displayName,
+    qrImageUrl: upi.qrImageUrl,
+  }
+}
 
 export interface Store {
   id: string

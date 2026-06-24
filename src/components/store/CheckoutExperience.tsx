@@ -1,14 +1,16 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { createCartOrder, lookupCustomerByPhone } from '@/lib/customer'
+import { createCartOrder, lookupCustomerByPhone, uploadPaymentProof } from '@/lib/customer'
 import { checkoutSchema, phoneSchema, type CheckoutFormData } from '@/lib/checkout-schema'
 import { formatPrice } from '@/lib/format'
 import type { ShippingAddress } from '@/types/customer'
-import { getEnabledPaymentMethods, type Store } from '@/types/store'
+import { getEnabledPaymentMethods, getStoreUpiDetails, type Store } from '@/types/store'
+
+const MAX_PROOF_SIZE_BYTES = 5 * 1024 * 1024 // 5MB, matches the upload API limit.
 
 export type CheckoutLineItem = {
   productId: string
@@ -86,6 +88,14 @@ export default function CheckoutExperience({
   const [submitError, setSubmitError] = useState('')
   const [redirecting, setRedirecting] = useState(false)
 
+  const upiDetails = useMemo(() => getStoreUpiDetails(store), [store])
+  const [proofUrl, setProofUrl] = useState('')
+  const [proofPreview, setProofPreview] = useState('')
+  const [proofUploading, setProofUploading] = useState(false)
+  const [proofError, setProofError] = useState('')
+  const proofInputRef = useRef<HTMLInputElement>(null)
+
+  const isUpi = paymentMethod === 'upi'
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   if (items.length === 0 && !redirecting) {
@@ -139,6 +149,50 @@ export default function CheckoutExperience({
     setAddressModalOpen(false)
   }
 
+  const handleProofChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setProofError('')
+    setSubmitError('')
+
+    if (!file.type.startsWith('image/')) {
+      setProofError('Please select an image file.')
+      return
+    }
+
+    if (file.size > MAX_PROOF_SIZE_BYTES) {
+      setProofError('Image is too large. Please upload a file under 5MB.')
+      return
+    }
+
+    // Reset any previous upload while the new one is in flight.
+    setProofUrl('')
+    setProofPreview(URL.createObjectURL(file))
+    setProofUploading(true)
+
+    try {
+      const url = await uploadPaymentProof(store.slug, file)
+      setProofUrl(url)
+    } catch (error) {
+      setProofError(
+        error instanceof Error ? error.message : 'Failed to upload payment proof. Please try again.',
+      )
+      setProofPreview('')
+    } finally {
+      setProofUploading(false)
+    }
+  }
+
+  const handleRemoveProof = () => {
+    setProofUrl('')
+    setProofPreview('')
+    setProofError('')
+    if (proofInputRef.current) {
+      proofInputRef.current.value = ''
+    }
+  }
+
   const handleChange = (field: keyof CheckoutFormData, value: string) => {
     setSelectedAddressIndex(null)
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -167,6 +221,18 @@ export default function CheckoutExperience({
       return
     }
 
+    if (isUpi) {
+      if (proofUploading) {
+        setSubmitError('Please wait for the payment proof to finish uploading.')
+        return
+      }
+      if (!proofUrl) {
+        setProofError('Please upload your UPI payment screenshot to continue.')
+        setSubmitError('Payment proof is required for UPI orders.')
+        return
+      }
+    }
+
     setLoading(true)
     try {
       const response = await createCartOrder(store.slug, {
@@ -177,6 +243,7 @@ export default function CheckoutExperience({
         })),
         shippingAddress: result.data,
         paymentMethod,
+        paymentProofUrl: isUpi ? proofUrl : undefined,
       })
       setRedirecting(true)
       onOrderPlaced?.()
@@ -378,16 +445,126 @@ export default function CheckoutExperience({
             </div>
           </div>
 
+          {isUpi ? (
+            <div className="space-y-3 rounded-xl border border-brand-green/30 bg-green-50/40 p-4">
+              <div>
+                <p className="text-sm font-semibold text-brand-dark">Pay via UPI</p>
+                <p className="mt-1 text-xs text-gray-600">
+                  Send {formatPrice(totalPrice)} to the UPI ID below, then upload a screenshot of the
+                  payment to confirm your order.
+                </p>
+              </div>
+
+              {upiDetails?.vpa || upiDetails?.qrImageUrl ? (
+                <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-3">
+                  {upiDetails?.qrImageUrl ? (
+                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md bg-gray-100">
+                      <Image
+                        src={upiDetails.qrImageUrl}
+                        alt="UPI QR code"
+                        fill
+                        className="object-contain"
+                        sizes="96px"
+                      />
+                    </div>
+                  ) : null}
+                  <div className="min-w-0 text-sm">
+                    {upiDetails?.displayName ? (
+                      <p className="font-semibold text-brand-dark">{upiDetails.displayName}</p>
+                    ) : null}
+                    {upiDetails?.vpa ? (
+                      <p className="mt-0.5 break-all font-mono text-gray-700">{upiDetails.vpa}</p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Upload payment screenshot <span className="text-red-500">*</span>
+                </label>
+
+                {proofPreview ? (
+                  <div className="mt-2 flex items-start gap-3">
+                    <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white">
+                      {/* Local object URL / remote URL preview — plain img avoids next/image host config. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={proofPreview}
+                        alt="Payment proof preview"
+                        className="h-full w-full object-cover"
+                      />
+                      {proofUploading ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/70">
+                          <span className="text-xs font-medium text-brand-dark">Uploading…</span>
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-col gap-2 text-sm">
+                      {proofUrl && !proofUploading ? (
+                        <span className="inline-flex items-center gap-1 font-medium text-brand-green">
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Uploaded
+                        </span>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={handleRemoveProof}
+                        disabled={proofUploading}
+                        className="text-left font-medium text-gray-500 hover:text-red-500 disabled:opacity-50"
+                      >
+                        Remove
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => proofInputRef.current?.click()}
+                        disabled={proofUploading}
+                        className="text-left font-medium text-brand-green hover:underline disabled:opacity-50"
+                      >
+                        Replace image
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => proofInputRef.current?.click()}
+                    disabled={proofUploading}
+                    className="mt-2 flex w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-gray-300 bg-white px-4 py-6 text-sm text-gray-500 transition hover:border-brand-green hover:text-brand-green disabled:opacity-60"
+                  >
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V18a2 2 0 002 2h14a2 2 0 002-2v-1.5M16 8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <span className="font-medium">{proofUploading ? 'Uploading…' : 'Tap to upload screenshot'}</span>
+                    <span className="text-xs text-gray-400">PNG, JPG or WebP · up to 5MB</span>
+                  </button>
+                )}
+
+                <input
+                  ref={proofInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleProofChange}
+                />
+
+                {proofError ? <p className="mt-2 text-xs text-red-500">{proofError}</p> : null}
+              </div>
+            </div>
+          ) : null}
+
           {submitError && (
             <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{submitError}</p>
           )}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || proofUploading}
             className="w-full rounded-full bg-brand-green py-3.5 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-60"
           >
-            {loading ? 'Placing Order...' : 'Place Order'}
+            {loading ? 'Placing Order...' : proofUploading ? 'Uploading proof...' : 'Place Order'}
           </button>
         </form>
       )}

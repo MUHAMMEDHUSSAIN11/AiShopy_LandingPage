@@ -82,12 +82,44 @@ export async function lookupCustomerByPhone(
   }
 }
 
+export async function uploadPaymentProof(storeSlug: string, file: File): Promise<string> {
+  const formData = new FormData()
+  formData.append('image', file)
+
+  let response: Response
+  try {
+    response = await fetch(`${PUBLIC_API_BASE}/api/public/uploads/payment-proof`, {
+      method: 'POST',
+      headers: { 'X-Store-Slug': storeSlug },
+      body: formData,
+    })
+  } catch {
+    throw new Error('Could not upload the image. Please check your connection and try again.')
+  }
+
+  const body = (await response.json().catch(() => null)) as Record<string, unknown> | null
+
+  if (!response.ok || (body && 'error' in body)) {
+    throw new Error(readErrorMessage(body, 'Failed to upload payment proof. Please try again.'))
+  }
+
+  const data = ((body?.data as Record<string, unknown>) ?? body ?? {}) as Record<string, unknown>
+  const url = typeof data.url === 'string' ? data.url : undefined
+
+  if (!url) {
+    throw new Error('Upload succeeded but no image URL was returned.')
+  }
+
+  return url
+}
+
 export async function createCartOrder(
   storeSlug: string,
   payload: {
     items: CartOrderItem[]
     shippingAddress: ShippingAddress
     paymentMethod: string
+    paymentProofUrl?: string
     notes?: string
   },
 ): Promise<OrderCreateResponse> {
@@ -104,6 +136,7 @@ export async function createCartOrder(
         variant_id: item.variantId,
       })),
       payment_method: payload.paymentMethod,
+      ...(payload.paymentProofUrl ? { payment_proof_url: payload.paymentProofUrl } : {}),
       shipping_address: payload.shippingAddress,
       notes: payload.notes ?? '',
     }),

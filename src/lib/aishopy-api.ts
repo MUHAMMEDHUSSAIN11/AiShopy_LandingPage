@@ -220,7 +220,20 @@ function mapPaymentMethods(
   if (!methods) return undefined
 
   return Object.fromEntries(
-    Object.entries(methods).map(([key, value]) => [key, { enabled: value.enabled }]),
+    Object.entries(methods).map(([key, value]) => {
+      const raw = value as Record<string, unknown>
+      const asString = (field: string) =>
+        typeof raw[field] === 'string' ? (raw[field] as string) : undefined
+      return [
+        key,
+        {
+          enabled: value.enabled,
+          vpa: asString('vpa'),
+          displayName: asString('display_name'),
+          qrImageUrl: asString('qr_image_url'),
+        },
+      ]
+    }),
   )
 }
 
