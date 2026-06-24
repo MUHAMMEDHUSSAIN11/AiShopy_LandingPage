@@ -2,6 +2,8 @@ import type {
   CartOrderItem,
   CustomerByPhoneResponse,
   OrderCreateResponse,
+  OrderRazorpayDetails,
+  RazorpayVerifyResult,
   ShippingAddress,
 } from '@/types/customer'
 
@@ -169,5 +171,67 @@ export async function createCartOrder(
     throw new Error('Order created but no order ID returned')
   }
 
-  return { success: true, orderId: String(orderId) }
+  const orderNumber =
+    typeof order.order_number === 'string' ? (order.order_number as string) : undefined
+
+  const checkoutToken =
+    (typeof data.checkout_token === 'string' ? (data.checkout_token as string) : undefined) ??
+    (typeof order.checkout_token === 'string' ? (order.checkout_token as string) : undefined)
+
+  let razorpay: OrderRazorpayDetails | undefined
+  const rz = data.razorpay as Record<string, unknown> | undefined
+  if (rz && typeof rz.key_id === 'string' && typeof rz.order_id === 'string') {
+    razorpay = {
+      keyId: rz.key_id,
+      orderId: rz.order_id,
+      amount: Number(rz.amount) || 0,
+      currency: typeof rz.currency === 'string' ? rz.currency : 'INR',
+    }
+  }
+
+  return { success: true, orderId: String(orderId), orderNumber, checkoutToken, razorpay }
+}
+
+export async function verifyRazorpayPayment(
+  storeSlug: string,
+  orderId: string,
+  payload: {
+    checkoutToken: string
+    razorpayOrderId: string
+    razorpayPaymentId: string
+    razorpaySignature: string
+  },
+): Promise<RazorpayVerifyResult> {
+  const response = await fetch(
+    `${PUBLIC_API_BASE}/api/public/orders/${encodeURIComponent(orderId)}/verify-payment`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Store-Slug': storeSlug,
+      },
+      body: JSON.stringify({
+        checkout_token: payload.checkoutToken,
+        razorpay_order_id: payload.razorpayOrderId,
+        razorpay_payment_id: payload.razorpayPaymentId,
+        razorpay_signature: payload.razorpaySignature,
+      }),
+    },
+  )
+
+  const body = (await response.json().catch(() => null)) as Record<string, unknown> | null
+
+  if (!response.ok || (body && 'error' in body)) {
+    throw new Error(readErrorMessage(body, 'Payment verification failed. Please contact support.'))
+  }
+
+  const data = ((body?.data as Record<string, unknown>) ?? body ?? {}) as Record<string, unknown>
+  const paymentStatus = typeof data.payment_status === 'string' ? data.payment_status : undefined
+
+  return {
+    success: paymentStatus ? paymentStatus === 'paid' : true,
+    paymentStatus,
+    orderStatus: typeof data.order_status === 'string' ? data.order_status : undefined,
+    orderNumber: typeof data.order_number === 'string' ? data.order_number : undefined,
+  }
 }

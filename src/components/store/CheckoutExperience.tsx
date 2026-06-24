@@ -4,10 +4,16 @@ import { useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { createCartOrder, lookupCustomerByPhone, uploadPaymentProof } from '@/lib/customer'
+import {
+  createCartOrder,
+  lookupCustomerByPhone,
+  uploadPaymentProof,
+  verifyRazorpayPayment,
+} from '@/lib/customer'
+import { loadRazorpayScript, type RazorpayHandlerResponse } from '@/lib/razorpay'
 import { checkoutSchema, phoneSchema, type CheckoutFormData } from '@/lib/checkout-schema'
 import { formatPrice } from '@/lib/format'
-import type { ShippingAddress } from '@/types/customer'
+import type { OrderCreateResponse, ShippingAddress } from '@/types/customer'
 import { getEnabledPaymentMethods, getStoreUpiDetails, type Store } from '@/types/store'
 
 const MAX_PROOF_SIZE_BYTES = 5 * 1024 * 1024 // 5MB, matches the upload API limit.
@@ -85,9 +91,11 @@ export default function CheckoutExperience({
   const [addressModalOpen, setAddressModalOpen] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState(paymentOptions[0]?.key ?? '')
   const [loading, setLoading] = useState(false)
+  const [processingLabel, setProcessingLabel] = useState('')
   const [submitError, setSubmitError] = useState('')
   const [redirecting, setRedirecting] = useState(false)
 
+  const isRazorpay = paymentMethod === 'razorpay'
   const upiDetails = useMemo(() => getStoreUpiDetails(store), [store])
   const [proofUrl, setProofUrl] = useState('')
   const [proofPreview, setProofPreview] = useState('')
@@ -234,6 +242,7 @@ export default function CheckoutExperience({
     }
 
     setLoading(true)
+    setProcessingLabel('Creating order…')
     try {
       const response = await createCartOrder(store.slug, {
         items: items.map((item) => ({
@@ -245,14 +254,97 @@ export default function CheckoutExperience({
         paymentMethod,
         paymentProofUrl: isUpi ? proofUrl : undefined,
       })
-      setRedirecting(true)
-      onOrderPlaced?.()
-      router.push(`/order/success?orderId=${encodeURIComponent(response.orderId)}`)
+
+      if (isRazorpay) {
+        // Razorpay continues asynchronously via the checkout modal callbacks.
+        await startRazorpayCheckout(response)
+        return
+      }
+
+      finishWithSuccess(response.orderId)
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : 'Failed to place your order. Please try again.',
       )
       setLoading(false)
+      setProcessingLabel('')
+    }
+  }
+
+  const finishWithSuccess = (orderId: string) => {
+    setRedirecting(true)
+    onOrderPlaced?.()
+    router.push(`/order/success?orderId=${encodeURIComponent(orderId)}`)
+  }
+
+  const startRazorpayCheckout = async (order: OrderCreateResponse) => {
+    if (!order.razorpay || !order.checkoutToken) {
+      throw new Error('Online payment is unavailable right now. Please try another payment method.')
+    }
+
+    const Razorpay = await loadRazorpayScript()
+
+    const rzp = new Razorpay({
+      key: order.razorpay.keyId,
+      amount: order.razorpay.amount,
+      currency: order.razorpay.currency,
+      order_id: order.razorpay.orderId,
+      name: store.name,
+      description: order.orderNumber ? `Order ${order.orderNumber}` : 'Order payment',
+      image: store.logoUrl,
+      prefill: { name: form.name, contact: form.phone_number },
+      theme: { color: '#16a34a' },
+      handler: (response) => {
+        void confirmRazorpayPayment(order, response)
+      },
+      modal: {
+        ondismiss: () => {
+          setLoading(false)
+          setProcessingLabel('')
+          setSubmitError(
+            'Payment was not completed. Your order is saved as pending — you can place the order again to retry payment.',
+          )
+        },
+      },
+    })
+
+    rzp.on('payment.failed', () => {
+      setLoading(false)
+      setProcessingLabel('')
+      setSubmitError('Payment failed. Your order is pending — please try again.')
+    })
+
+    setProcessingLabel('Waiting for payment…')
+    rzp.open()
+  }
+
+  const confirmRazorpayPayment = async (
+    order: OrderCreateResponse,
+    response: RazorpayHandlerResponse,
+  ) => {
+    setLoading(true)
+    setProcessingLabel('Confirming payment…')
+    try {
+      const result = await verifyRazorpayPayment(store.slug, order.orderId, {
+        checkoutToken: order.checkoutToken ?? '',
+        razorpayOrderId: response.razorpay_order_id,
+        razorpayPaymentId: response.razorpay_payment_id,
+        razorpaySignature: response.razorpay_signature,
+      })
+
+      if (!result.success) {
+        throw new Error('We could not confirm your payment. Please contact support.')
+      }
+
+      finishWithSuccess(order.orderId)
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : 'We could not confirm your payment. Please contact support.',
+      )
+      setLoading(false)
+      setProcessingLabel('')
     }
   }
 
@@ -445,6 +537,13 @@ export default function CheckoutExperience({
             </div>
           </div>
 
+          {isRazorpay ? (
+            <p className="rounded-xl border border-brand-green/30 bg-green-50/40 px-4 py-3 text-xs text-gray-600">
+              You&apos;ll complete a secure payment of {formatPrice(totalPrice)} via Razorpay after
+              placing the order. Your order is confirmed only once payment succeeds.
+            </p>
+          ) : null}
+
           {isUpi ? (
             <div className="space-y-3 rounded-xl border border-brand-green/30 bg-green-50/40 p-4">
               <div>
@@ -564,7 +663,13 @@ export default function CheckoutExperience({
             disabled={loading || proofUploading}
             className="w-full rounded-full bg-brand-green py-3.5 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-60"
           >
-            {loading ? 'Placing Order...' : proofUploading ? 'Uploading proof...' : 'Place Order'}
+            {loading
+              ? processingLabel || 'Placing Order...'
+              : proofUploading
+                ? 'Uploading proof...'
+                : isRazorpay
+                  ? 'Pay & Place Order'
+                  : 'Place Order'}
           </button>
         </form>
       )}
