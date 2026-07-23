@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -105,6 +105,16 @@ export default function CheckoutExperience({
 
   const isUpi = paymentMethod === 'upi'
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
+  // Warm the Razorpay checkout script ahead of time when the store offers it, so
+  // the modal can open instantly once the order (and payment session) is created.
+  useEffect(() => {
+    if (paymentOptions.some((option) => option.key === 'razorpay')) {
+      loadRazorpayScript().catch(() => {
+        // Ignore preload failures; startRazorpayCheckout retries and surfaces errors.
+      })
+    }
+  }, [paymentOptions])
 
   if (items.length === 0 && !redirecting) {
     return <>{emptyState}</>
@@ -279,7 +289,13 @@ export default function CheckoutExperience({
 
   const startRazorpayCheckout = async (order: OrderCreateResponse) => {
     if (!order.razorpay || !order.checkoutToken) {
-      throw new Error('Online payment is unavailable right now. Please try another payment method.')
+      // The backend returns `data.razorpay` + `data.checkout_token` only when the
+      // store has Razorpay configured. If they're missing, the order was still
+      // created (pending) but the payment session could not be generated.
+  
+      throw new Error(
+        'Online payment could not be started for this store. Your order is saved as pending — please choose another payment method or contact the store.',
+      )
     }
 
     const Razorpay = await loadRazorpayScript()

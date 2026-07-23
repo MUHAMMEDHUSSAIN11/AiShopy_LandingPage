@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server'
-
-const AISHOOPY_API_URL =
-  process.env.AISHOOPY_API_URL?.replace(/\/$/, '') ?? 'https://aishopy.up.railway.app'
+import { AISHOPY_API_URL } from '@/lib/env'
 
 export async function GET() {
   return NextResponse.json({
     status: 'ok',
     mode: 'production',
-    catalogApi: `${AISHOOPY_API_URL}/api/public/catalog`,
+    catalogApi: `${AISHOPY_API_URL}/api/public/catalog`,
     endpoints: [
       { method: 'GET', path: '/api/health', description: 'This endpoint — API discovery' },
       {
