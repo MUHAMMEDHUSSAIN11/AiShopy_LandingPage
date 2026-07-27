@@ -3,6 +3,164 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Store theme tokens. Defaults reproduce today's look exactly
+   * (brand-green #2DB84C, white surfaces, #1A1A1A text, gray-50 canvas).
+   *
+   * Base colors are RGB triples so Tailwind opacity modifiers
+   * (e.g. ring-store-primary/20) keep working. Derived shades use
+   * color-mix so a single configured primary drives hover/soft/muted.
+   *
+   * Declared on both :root and .store-theme: the storefront wrapper
+   * (.store-theme) overrides the base vars via inline style, and because
+   * the derived vars are re-declared on .store-theme they re-resolve
+   * against the overridden values there.
+   */
+  :root,
+  .store-theme {
+    --store-primary-rgb: 45 184 76; /* #2DB84C */
+    --store-bg-rgb: 255 255 255; /* #FFFFFF */
+    --store-text-rgb: 26 26 26; /* #1A1A1A */
+    --store-muted-rgb: 107 114 128;
+    --store-border-rgb: 229 231 235;
+    --store-subtle-rgb: 249 250 251;
+
+    --store-bg-shell: #f9fafb;
+
+    --store-primary-hover: color-mix(in srgb, rgb(var(--store-primary-rgb)) 84%, #000000);
+    --store-primary-soft: color-mix(in srgb, rgb(var(--store-primary-rgb)) 12%, rgb(var(--store-bg-rgb)));
+    --store-primary-muted: color-mix(in srgb, rgb(var(--store-primary-rgb)) 28%, rgb(var(--store-bg-rgb)));
+
+    /* Fixed semantic stock — never use brand primary for availability */
+    --store-stock-in-rgb: 22 163 74;
+    --store-stock-out-rgb: 220 38 38;
+    --store-stock-low-rgb: 217 119 6;
+  }
+
+  .store-theme[data-surface='dark'] {
+    --store-primary-soft: color-mix(in srgb, rgb(var(--store-primary-rgb)) 18%, rgb(var(--store-bg-rgb)));
+    --store-primary-muted: color-mix(in srgb, rgb(var(--store-primary-rgb)) 32%, rgb(var(--store-bg-rgb)));
+  }
+
+  .store-theme[data-template='boutique'] .template-page-enter {
+    animation: store-fade-up 0.45s ease-out both;
+  }
+
+  .store-theme[data-template='modern'] .template-page-enter {
+    animation: store-fade-in 0.35s ease-out both;
+  }
+
+  .store-theme[data-template='classic'] .template-page-enter {
+    animation: store-fade-in 0.3s ease-out both;
+  }
+
+  /* ——— Per-template catalog chrome ——— */
+  .store-theme[data-template='classic'] .catalog-classic .template-catalog-item article {
+    border-radius: 0.75rem;
+  }
+
+  .store-theme[data-template='boutique'] .catalog-boutique {
+    font-feature-settings: 'kern' 1;
+  }
+
+  .store-theme[data-template='boutique'] .catalog-boutique h1,
+  .store-theme[data-template='boutique'] .catalog-boutique h2 {
+    font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  }
+
+  .store-theme[data-template='boutique'] .marketplace-title {
+    font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  }
+
+  .store-theme[data-template='boutique'] .catalog-marketplace-sidebar {
+    background: color-mix(in srgb, rgb(var(--store-bg-rgb)) 92%, rgb(var(--store-subtle-rgb)));
+  }
+
+  .cart-boutique .marketplace-title {
+    font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  }
+
+  .product-boutique .marketplace-title {
+    font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  }
+
+  .success-boutique .marketplace-title {
+    font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  }
+
+  .checkout-boutique .marketplace-title {
+    font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  }
+
+  .store-theme[data-template='modern'] .catalog-modern h1 {
+    letter-spacing: -0.02em;
+  }
+
+  .store-theme[data-template='modern'] .catalog-modern .template-catalog-item article {
+    border-radius: 0.375rem;
+  }
+
+  .checkout-classic .checkout-panel {
+    border-radius: 1rem;
+    border: 1px solid rgb(var(--store-border-rgb));
+    background: rgb(var(--store-bg-rgb));
+    padding: 1.25rem 1.5rem;
+  }
+
+  .checkout-boutique .checkout-panel {
+    border-radius: 1.5rem;
+    border: 1px solid rgb(var(--store-border-rgb));
+    background: rgb(var(--store-subtle-rgb));
+    padding: 1rem 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .checkout-boutique .checkout-panel {
+      padding: 1.5rem;
+    }
+  }
+
+  .checkout-modern .checkout-panel {
+    border-radius: 0.5rem;
+    border-left: 4px solid rgb(var(--store-primary-rgb));
+    background: rgb(var(--store-bg-rgb));
+    padding: 1.25rem;
+  }
+
+  .checkout-modern .checkout-step-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(var(--store-primary-rgb));
+  }
+
+  .store-theme[data-surface='dark'] .checkout-panel input[type='text'],
+  .store-theme[data-surface='dark'] .checkout-panel input[type='tel'] {
+    background-color: rgb(var(--store-subtle-rgb));
+    color: rgb(var(--store-text-rgb));
+  }
+
+  @keyframes store-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes store-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   html {
     scroll-behavior: smooth;
   }

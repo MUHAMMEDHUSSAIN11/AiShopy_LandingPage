@@ -1,26 +1,18 @@
-import ProductCard from '@/components/store/ProductCard'
+'use client'
+
+import CatalogProductList from '@/components/store/CatalogProductList'
+import { useStoreTemplate } from '@/contexts/StoreTemplateContext'
 import type { Product } from '@/types/product'
+import type { StoreTemplateId } from '@/types/store'
 
 type ProductGridProps = {
   storeSlug: string
   products: Product[]
+  template?: StoreTemplateId
 }
 
-export default function ProductGrid({ storeSlug, products }: ProductGridProps) {
-  if (products.length === 0) {
-    return (
-      <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-6 py-16 text-center">
-        <p className="text-lg font-medium text-gray-700">No products available</p>
-        <p className="mt-2 text-sm text-gray-500">Check back soon for new items.</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
-      {products.map((product) => (
-        <ProductCard key={product.id} storeSlug={storeSlug} product={product} />
-      ))}
-    </div>
-  )
+export default function ProductGrid(props: ProductGridProps) {
+  const templateFromContext = useStoreTemplate()
+  const template = props.template ?? templateFromContext
+  return <CatalogProductList {...props} template={template} />
 }

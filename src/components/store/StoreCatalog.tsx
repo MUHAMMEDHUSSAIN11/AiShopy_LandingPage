@@ -1,5 +1,6 @@
-import StoreCatalogContent from '@/components/store/StoreCatalogContent'
 import ErrorMessage from '@/components/store/ErrorMessage'
+import StoreTheme from '@/components/store/StoreTheme'
+import { getCatalogTemplate } from '@/components/store/templates'
 import { getCatalog } from '@/lib/catalog'
 import { getStoreBySlug, StoreNotFoundError } from '@/lib/store'
 
@@ -17,13 +18,17 @@ export default async function StoreCatalog({ storeSlug }: StoreCatalogProps) {
       getCatalog(storeSlug),
     ])
 
+    const CatalogTemplate = getCatalogTemplate(store.themeConfig?.template)
+
     return (
-      <StoreCatalogContent
-        storeSlug={storeSlug}
-        store={store}
-        categories={catalog.categories}
-        initialProducts={catalog.products}
-      />
+      <StoreTheme themeConfig={store.themeConfig}>
+        <CatalogTemplate
+          storeSlug={storeSlug}
+          store={store}
+          categories={catalog.categories}
+          initialProducts={catalog.products}
+        />
+      </StoreTheme>
     )
   } catch (error) {
     if (error instanceof StoreNotFoundError || (error instanceof Error && error.message === 'Store not found')) {

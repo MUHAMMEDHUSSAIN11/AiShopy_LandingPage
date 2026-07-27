@@ -11,10 +11,10 @@ export default function SidebarWatermark({ className = '' }: SidebarWatermarkPro
         href={PLATFORM_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="block text-center text-xs tracking-wide text-gray-400 transition hover:text-brand-green"
+        className="block text-center text-xs tracking-wide text-gray-400 transition hover:text-store-primary"
       >
         Powered by{' '}
-        <span className="font-semibold text-brand-green/80 hover:text-brand-green">
+        <span className="font-semibold text-store-primary/80 hover:text-store-primary">
           {STOREFRONT_DOMAIN}
         </span>
       </a>

@@ -1,15 +1,22 @@
 type CartIconProps = {
   count?: number
   onClick?: () => void
+  className?: string
+  badgeRingClassName?: string
 }
 
-export default function CartIcon({ count = 0, onClick }: CartIconProps) {
+export default function CartIcon({
+  count = 0,
+  onClick,
+  className,
+  badgeRingClassName = 'ring-white',
+}: CartIconProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={`Shopping cart${count > 0 ? `, ${count} items` : ''}`}
-      className="relative flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition hover:bg-gray-100 hover:text-brand-green"
+      className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-700 transition hover:bg-gray-100 hover:text-store-primary ${className ?? ''}`}
     >
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
         <path
@@ -19,7 +26,9 @@ export default function CartIcon({ count = 0, onClick }: CartIconProps) {
         />
       </svg>
       {count > 0 && (
-        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
+        <span
+          className={`absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ${badgeRingClassName}`}
+        >
           {count > 99 ? '99+' : count}
         </span>
       )}

@@ -27,7 +27,7 @@ export default function StoreSidebar({
   }
 
   const navItemClass =
-    'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm font-medium tracking-wide text-gray-700 transition hover:bg-green-50 hover:text-brand-green'
+    'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm font-medium tracking-wide text-gray-700 transition hover:bg-store-primary-soft hover:text-store-primary'
 
   return (
     <div className="flex h-full flex-col">
@@ -88,7 +88,7 @@ function CategoryTree({ categories, activeCategoryId, onSelect, depth = 0 }: Cat
   return (
     <ul
       className={`space-y-0.5 ${
-        depth === 0 ? 'mt-1 border-l-2 border-green-100 pl-3' : 'mt-0.5 border-l border-green-100 pl-3'
+        depth === 0 ? 'mt-1 border-l-2 border-store-primary-muted pl-3' : 'mt-0.5 border-l border-store-primary-muted pl-3'
       }`}
     >
       {categories.map((category) => (
@@ -98,8 +98,8 @@ function CategoryTree({ categories, activeCategoryId, onSelect, depth = 0 }: Cat
             onClick={() => onSelect(category.id)}
             className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium tracking-wide transition ${
               activeCategoryId === category.id
-                ? 'bg-brand-green text-white'
-                : 'text-gray-600 hover:bg-green-50 hover:text-brand-green'
+                ? 'bg-store-primary text-white'
+                : 'text-gray-600 hover:bg-store-primary-soft hover:text-store-primary'
             }`}
           >
             {category.name}

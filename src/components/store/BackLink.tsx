@@ -10,9 +10,9 @@ export default function BackLink({ href, label, className = '' }: BackLinkProps)
   return (
     <Link
       href={href}
-      className={`group inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition hover:text-brand-green ${className}`}
+      className={`group inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition hover:text-store-primary ${className}`}
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm transition group-hover:border-brand-green group-hover:text-brand-green">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-store-bg shadow-sm transition group-hover:border-store-primary group-hover:text-store-primary">
         <svg
           className="h-4 w-4"
           fill="none"
