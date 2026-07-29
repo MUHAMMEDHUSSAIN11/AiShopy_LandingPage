@@ -1,3 +1,4 @@
+import { AISHOPY_API_URL } from '@/lib/env'
 import type {
   CartOrderItem,
   CustomerByPhoneResponse,
@@ -6,10 +7,6 @@ import type {
   RazorpayVerifyResult,
   ShippingAddress,
 } from '@/types/customer'
-
-const PUBLIC_API_BASE = (
-  process.env.NEXT_PUBLIC_AISHOPY_API_URL ?? 'https://aishopy.up.railway.app'
-).replace(/\/$/, '')
 
 type ApiErrorShape = { error?: { message?: string; code?: string } | string }
 
@@ -37,7 +34,7 @@ export async function lookupCustomerByPhone(
   storeSlug: string,
   phoneNumber: string,
 ): Promise<CustomerByPhoneResponse> {
-  const url = new URL(`${PUBLIC_API_BASE}/api/public/customers/by-phone`)
+  const url = new URL(`${AISHOPY_API_URL}/api/public/customers/by-phone`)
   url.searchParams.set('phone', phoneNumber)
 
   let response: Response
@@ -90,7 +87,7 @@ export async function uploadPaymentProof(storeSlug: string, file: File): Promise
 
   let response: Response
   try {
-    response = await fetch(`${PUBLIC_API_BASE}/api/public/uploads/payment-proof`, {
+    response = await fetch(`${AISHOPY_API_URL}/api/public/uploads/payment-proof`, {
       method: 'POST',
       headers: { 'X-Store-Slug': storeSlug },
       body: formData,
@@ -125,7 +122,7 @@ export async function createCartOrder(
     notes?: string
   },
 ): Promise<OrderCreateResponse> {
-  const response = await fetch(`${PUBLIC_API_BASE}/api/public/orders`, {
+  const response = await fetch(`${AISHOPY_API_URL}/api/public/orders`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -203,7 +200,7 @@ export async function verifyRazorpayPayment(
   },
 ): Promise<RazorpayVerifyResult> {
   const response = await fetch(
-    `${PUBLIC_API_BASE}/api/public/orders/${encodeURIComponent(orderId)}/verify-payment`,
+    `${AISHOPY_API_URL}/api/public/orders/${encodeURIComponent(orderId)}/verify-payment`,
     {
       method: 'POST',
       headers: {

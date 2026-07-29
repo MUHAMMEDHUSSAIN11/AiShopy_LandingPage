@@ -7,7 +7,7 @@ export async function GET() {
   return NextResponse.json({
     status: 'ok',
     mode: 'production',
-    catalogApi: `${AISHOOPY_API_URL}/api/public/catalog`,
+    catalogApi: `${AISHOPY_API_URL}/api/public/catalog`,
     endpoints: [
       { method: 'GET', path: '/api/health', description: 'This endpoint — API discovery' },
       {

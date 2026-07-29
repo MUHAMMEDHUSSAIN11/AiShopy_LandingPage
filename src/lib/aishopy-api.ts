@@ -1,5 +1,6 @@
 import 'server-only'
 import { z } from 'zod'
+import { AISHOPY_API_URL } from '@/lib/env'
 import { slugify } from '@/lib/slugify'
 import { isVariantPurchasable } from '@/lib/product-utils'
 import type { Catalog, CatalogQueryParams } from '@/types/catalog'
@@ -8,9 +9,6 @@ import type { Category } from '@/types/category'
 import type { Product, ProductVariant } from '@/types/product'
 import type { CartOrderItem, OrderCreateResponse, ShippingAddress } from '@/types/customer'
 import type { Store, StorePaymentMethods, ThemeConfig } from '@/types/store'
-
-const AISHOOPY_API_URL =
-  process.env.AISHOOPY_API_URL?.replace(/\/$/, '') ?? 'https://aishopy.up.railway.app'
 
 const idSchema = z.union([z.string(), z.number()]).transform(String)
 
@@ -424,7 +422,7 @@ function isActiveProduct(product: z.infer<typeof apiProductSchema>): boolean {
 }
 
 function buildCatalogUrl(storeSlug: string, params: CatalogQueryParams = {}): URL {
-  const url = new URL(`${AISHOOPY_API_URL}/api/public/catalog`)
+  const url = new URL(`${AISHOPY_API_URL}/api/public/catalog`)
 
   if (params.categoryId) url.searchParams.set('category_id', params.categoryId)
   if (params.productId) url.searchParams.set('product_id', params.productId)
@@ -498,7 +496,7 @@ async function fetchPublicApi(
   path: string,
   init: RequestInit = {},
 ): Promise<{ response: Response; body: unknown }> {
-  const url = `${AISHOOPY_API_URL}${path}`
+  const url = `${AISHOPY_API_URL}${path}`
   const response = await fetch(url, {
     ...init,
     headers: {
@@ -582,7 +580,7 @@ export async function fetchCustomerByPhone(
   storeSlug: string,
   phoneNumber: string,
 ): Promise<{ exists: boolean; addresses: ShippingAddress[]; name?: string }> {
-  const url = new URL(`${AISHOOPY_API_URL}/api/public/customers/by-phone`)
+  const url = new URL(`${AISHOPY_API_URL}/api/public/customers/by-phone`)
   url.searchParams.set('phone', phoneNumber)
 
   const { response, body } = await fetchPublicApi(storeSlug, `${url.pathname}${url.search}`)

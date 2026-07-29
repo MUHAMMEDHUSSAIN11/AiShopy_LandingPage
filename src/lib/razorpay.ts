@@ -35,6 +35,11 @@ declare global {
 }
 
 const SCRIPT_SRC = 'https://checkout.razorpay.com/v1/checkout.js'
+const LOAD_TIMEOUT_MS = 15000
+
+// Dedupes concurrent load attempts. Reset to null on failure so a later retry
+// can start a fresh load instead of awaiting a dead promise.
+let loadPromise: Promise<RazorpayConstructor> | null = null
 
 const DEFAULT_THEME_COLOR = '#16a34a'
 const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
@@ -50,43 +55,76 @@ export function getRazorpayThemeColor(themeConfig?: ThemeConfig | null): string 
 
 /**
  * Loads the Razorpay Checkout script once and resolves with the constructor.
- * Subsequent calls reuse the already-loaded global.
+ * Subsequent calls reuse the already-loaded global (or an in-flight load).
+ *
+ * Handles the edge cases the previous implementation missed:
+ * - an existing <script> tag that already errored (previously hung forever),
+ * - a script that loads but never defines window.Razorpay,
+ * - a load that never completes (network stall) via a timeout,
+ * so the checkout never gets stuck on "Waiting for payment…".
  */
 export function loadRazorpayScript(): Promise<RazorpayConstructor> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined') {
-      reject(new Error('Razorpay can only be loaded in the browser.'))
-      return
+  if (typeof window === 'undefined') {
+    return Promise.reject(new Error('Razorpay can only be loaded in the browser.'))
+  }
+
+  if (window.Razorpay) {
+    return Promise.resolve(window.Razorpay)
+  }
+
+  if (loadPromise) {
+    return loadPromise
+  }
+
+  loadPromise = new Promise<RazorpayConstructor>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_SRC}"]`)
+    const script = existing ?? document.createElement('script')
+
+    let settled = false
+    let timeoutId = 0
+
+    const succeed = (ctor: RazorpayConstructor) => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(timeoutId)
+      resolve(ctor)
     }
 
-    if (window.Razorpay) {
-      resolve(window.Razorpay)
-      return
+    const fail = (message: string, removeScript: boolean) => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(timeoutId)
+      // Allow a future call to retry with a fresh <script> element.
+      loadPromise = null
+      if (removeScript) script.remove()
+      reject(new Error(message))
     }
 
-    const finish = () => {
+    const handleLoad = () => {
       if (window.Razorpay) {
-        resolve(window.Razorpay)
+        succeed(window.Razorpay)
       } else {
-        reject(new Error('Razorpay failed to initialise. Please try again.'))
+        fail('Razorpay failed to initialise. Please try again.', !existing)
       }
     }
 
-    const existing = document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_SRC}"]`)
-    if (existing) {
-      existing.addEventListener('load', finish)
-      existing.addEventListener('error', () =>
-        reject(new Error('Could not load Razorpay. Please check your connection.')),
-      )
-      return
+    const handleError = () => {
+      fail('Could not load Razorpay. Please check your connection.', true)
     }
 
-    const script = document.createElement('script')
-    script.src = SCRIPT_SRC
-    script.async = true
-    script.onload = finish
-    script.onerror = () =>
-      reject(new Error('Could not load Razorpay. Please check your connection.'))
-    document.body.appendChild(script)
+    timeoutId = window.setTimeout(() => {
+      fail('Razorpay took too long to load. Please try again.', !existing)
+    }, LOAD_TIMEOUT_MS)
+
+    script.addEventListener('load', handleLoad)
+    script.addEventListener('error', handleError)
+
+    if (!existing) {
+      script.src = SCRIPT_SRC
+      script.async = true
+      document.body.appendChild(script)
+    }
   })
+
+  return loadPromise
 }

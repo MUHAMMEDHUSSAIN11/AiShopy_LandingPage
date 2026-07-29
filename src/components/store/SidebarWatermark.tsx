@@ -1,4 +1,5 @@
-import { PLATFORM_URL, STOREFRONT_DOMAIN } from '@/lib/constants'
+import { STOREFRONT_DOMAIN } from '@/lib/constants'
+import { PLATFORM_URL } from '@/lib/env'
 
 type SidebarWatermarkProps = {
   className?: string
