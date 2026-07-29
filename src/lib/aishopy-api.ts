@@ -63,7 +63,8 @@ function parseThemeConfig(raw: unknown): ThemeConfig | undefined {
   const { template, colors, productCard } = parsed.data
 
   return {
-    template: template === 'boutique' ? 'boutique' : 'classic',
+    template:
+      template === 'boutique' || template === 'modern' ? template : 'classic',
     colors: colors
       ? { primary: colors.primary, background: colors.background, text: colors.text }
       : undefined,
