@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { usePreview, useStoreHref } from '@/contexts/PreviewContext'
@@ -19,6 +20,7 @@ import {
 } from '@/lib/razorpay'
 import { checkoutSchema, phoneSchema, type CheckoutFormData } from '@/lib/checkout-schema'
 import { formatPrice } from '@/lib/format'
+import { getTemplateId, getThemeStyle, isDarkTheme } from '@/lib/store-theme'
 import type { OrderCreateResponse, ShippingAddress } from '@/types/customer'
 import { getEnabledPaymentMethods, getStoreUpiDetails, type Store } from '@/types/store'
 import type { StoreTemplateId } from '@/types/store'
@@ -133,9 +135,32 @@ export default function CheckoutExperience({
   const [proofUploading, setProofUploading] = useState(false)
   const [proofError, setProofError] = useState('')
   const proofInputRef = useRef<HTMLInputElement>(null)
+  const checkoutPanelRef = useRef<HTMLDivElement>(null)
+  const [portalReady, setPortalReady] = useState(false)
 
   const isUpi = paymentMethod === 'upi'
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
+  useEffect(() => {
+    setPortalReady(true)
+  }, [])
+
+  useEffect(() => {
+    if (step !== 'details') return
+    checkoutPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [step])
+
+  useEffect(() => {
+    if (!addressModalOpen) {
+      document.body.style.overflow = ''
+      return
+    }
+
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [addressModalOpen])
 
   // Warm the Razorpay checkout script ahead of time when the store offers it, so
   // the modal can open instantly once the order (and payment session) is created.
@@ -408,6 +433,9 @@ export default function CheckoutExperience({
   }
 
   const showInlineOrderSummary = layout !== 'boutique' && layout !== 'modern'
+  const themeStyle = getThemeStyle(store.themeConfig)
+  const themeSurface = isDarkTheme(store.themeConfig) ? 'dark' : 'light'
+  const themeTemplate = getTemplateId(store.themeConfig)
 
   return (
     <>
@@ -417,7 +445,7 @@ export default function CheckoutExperience({
           Step {step === 'phone' ? '1' : '2'} — {step === 'phone' ? 'Verify phone' : 'Delivery & pay'}
         </p>
       ) : null}
-    <div className="checkout-panel space-y-8">
+    <div className="checkout-panel space-y-8" ref={checkoutPanelRef}>
       {showInlineOrderSummary ? (
       <div className={orderSummaryClass}>
         {items.map((item) => (
@@ -745,71 +773,83 @@ export default function CheckoutExperience({
     </div>
     </div>
 
-    {addressModalOpen ? (
-      <div
-        className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Choose delivery address"
-        onClick={() => setAddressModalOpen(false)}
-      >
-        <div
-          className="flex max-h-[85vh] w-full max-w-md flex-col rounded-t-2xl bg-store-bg shadow-xl sm:rounded-2xl"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="flex items-center justify-between border-b border-store-border px-5 py-4">
-            <div>
-              <h3 className="text-lg font-bold text-store-text">Choose delivery address</h3>
-              <p className="mt-0.5 text-sm text-store-muted">Select a saved address or add a new one.</p>
-            </div>
-            <button
-              type="button"
+    {portalReady && addressModalOpen
+      ? createPortal(
+          <div
+            className="store-theme"
+            data-surface={themeSurface}
+            data-template={themeTemplate}
+            style={themeStyle}
+          >
+            <div
+              className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Choose delivery address"
               onClick={() => setAddressModalOpen(false)}
-              aria-label="Close"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-store-muted transition hover:bg-store-subtle hover:text-store-text"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="flex-1 space-y-2 overflow-y-auto px-5 py-4">
-            {savedAddresses.map((address, index) => {
-              const isSelected = selectedAddressIndex === index
-              return (
+            <div
+              className="flex max-h-[85vh] w-full max-w-md flex-col rounded-t-2xl bg-store-bg shadow-xl sm:rounded-2xl"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-store-border px-5 py-4">
+                <div>
+                  <h3 className="text-lg font-bold text-store-text">Choose delivery address</h3>
+                  <p className="mt-0.5 text-sm text-store-muted">
+                    Select a saved address or add a new one.
+                  </p>
+                </div>
                 <button
-                  key={`${address.address}-${index}`}
                   type="button"
-                  onClick={() => handleSelectSavedAddress(index)}
-                  className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition ${
-                    isSelected
-                      ? 'border-store-primary bg-store-primary-soft'
-                      : 'border-store-border bg-store-bg hover:border-store-primary'
-                  }`}
+                  onClick={() => setAddressModalOpen(false)}
+                  aria-label="Close"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-store-muted transition hover:bg-store-subtle hover:text-store-text"
                 >
-                  <span className="font-semibold text-store-text">{address.name || 'Saved address'}</span>
-                  <span className="mt-0.5 block text-store-muted">{summariseAddress(address)}</span>
-                  {address.phone_number ? (
-                    <span className="mt-0.5 block text-xs text-store-muted">{address.phone_number}</span>
-                  ) : null}
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
-              )
-            })}
-          </div>
+              </div>
 
-          <div className="border-t border-store-border px-5 py-4">
-            <button
-              type="button"
-              onClick={handleUseNewAddress}
-              className="w-full rounded-full border border-dashed border-store-primary px-4 py-3 text-sm font-semibold text-store-primary transition hover:bg-store-primary-soft"
-            >
-              + Enter a new address
-            </button>
+              <div className="flex-1 space-y-2 overflow-y-auto px-5 py-4">
+                {savedAddresses.map((address, index) => {
+                  const isSelected = selectedAddressIndex === index
+                  return (
+                    <button
+                      key={`${address.address}-${index}`}
+                      type="button"
+                      onClick={() => handleSelectSavedAddress(index)}
+                      className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition ${
+                        isSelected
+                          ? 'border-store-primary bg-store-primary-soft'
+                          : 'border-store-border bg-store-bg hover:border-store-primary'
+                      }`}
+                    >
+                      <span className="font-semibold text-store-text">{address.name || 'Saved address'}</span>
+                      <span className="mt-0.5 block text-store-muted">{summariseAddress(address)}</span>
+                      {address.phone_number ? (
+                        <span className="mt-0.5 block text-xs text-store-muted">{address.phone_number}</span>
+                      ) : null}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="border-t border-store-border px-5 py-4">
+                <button
+                  type="button"
+                  onClick={handleUseNewAddress}
+                  className="w-full rounded-full border border-dashed border-store-primary px-4 py-3 text-sm font-semibold text-store-primary transition hover:bg-store-primary-soft"
+                >
+                  + Enter a new address
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    ) : null}
+          </div>,
+          document.body,
+        )
+      : null}
     </>
   )
 }

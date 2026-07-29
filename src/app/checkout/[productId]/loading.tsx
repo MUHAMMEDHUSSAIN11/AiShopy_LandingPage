@@ -1,5 +1,10 @@
 import CheckoutPageSkeleton from '@/components/store/skeletons/CheckoutPageSkeleton'
+import StoreThemedSkeleton from '@/components/store/skeletons/StoreThemedSkeleton'
 
 export default function CheckoutLoading() {
-  return <CheckoutPageSkeleton />
+  return (
+    <StoreThemedSkeleton>
+      <CheckoutPageSkeleton />
+    </StoreThemedSkeleton>
+  )
 }

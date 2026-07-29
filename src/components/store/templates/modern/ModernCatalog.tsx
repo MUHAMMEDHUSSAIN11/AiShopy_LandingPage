@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import CatalogProductList from '@/components/store/CatalogProductList'
 import CartIcon from '@/components/store/CartIcon'
 import ProductSearchBar from '@/components/store/ProductSearchBar'
+import ModernFilterPanel from '@/components/store/templates/modern/ModernFilterPanel'
+import ModernFilterToggle from '@/components/store/templates/modern/ModernFilterToggle'
 import type { CatalogTemplateProps } from '@/components/store/templates/types'
 import { useStoreHref } from '@/contexts/PreviewContext'
 import { useCartReconcile } from '@/hooks/use-cart-reconcile'
@@ -32,6 +34,7 @@ export default function ModernCatalog({
   const [products, setProducts] = useState(initialProducts)
   const [searchQuery, setSearchQuery] = useState('')
   const [sort, setSort] = useState<'default' | 'price-asc' | 'price-desc'>('default')
+  const [filterOpen, setFilterOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   useCartReconcile(storeSlug, initialProducts)
@@ -80,8 +83,23 @@ export default function ModernCatalog({
     return list
   }, [products, searchQuery, sort])
 
+  const activeCategoryName = useMemo(() => {
+    if (!activeCategoryId) return ALL_CATEGORY.name
+    return filterChips.find((chip) => chip.id === activeCategoryId)?.name ?? ALL_CATEGORY.name
+  }, [activeCategoryId, filterChips])
+
   return (
     <div className="catalog-modern min-h-screen bg-store-bg-shell template-page-enter">
+      <ModernFilterPanel
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        filterChips={filterChips}
+        activeCategoryId={activeCategoryId}
+        onCategoryChange={handleCategoryChange}
+        sort={sort}
+        onSortChange={setSort}
+      />
+
       <header className="sticky top-0 z-30 border-b-2 border-store-text/10 bg-store-bg">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-3 sm:px-6">
           <Link
@@ -139,22 +157,11 @@ export default function ModernCatalog({
         </aside>
 
         <main className="min-w-0 px-4 py-6 sm:px-6">
-          <div className="flex gap-2 overflow-x-auto pb-4 lg:hidden">
-            {filterChips.map((chip) => {
-              const active = chip.id === activeCategoryId
-              return (
-                <button
-                  key={chip.id || 'all'}
-                  type="button"
-                  onClick={() => handleCategoryChange(chip.id)}
-                  className={`shrink-0 rounded-md px-3 py-1.5 text-xs font-bold uppercase ${
-                    active ? 'bg-store-primary text-white' : 'bg-store-subtle text-store-text'
-                  }`}
-                >
-                  {chip.name}
-                </button>
-              )
-            })}
+          <div className="mb-4 flex flex-wrap items-center gap-3 lg:hidden">
+            <ModernFilterToggle open={filterOpen} onClick={() => setFilterOpen((open) => !open)} />
+            <p className="min-w-0 flex-1 text-sm font-medium text-store-text">
+              <span className="text-store-muted">Category:</span> {activeCategoryName}
+            </p>
           </div>
 
           <div className="mb-4 flex items-end justify-between gap-4 border-b border-store-border pb-3">
@@ -162,7 +169,7 @@ export default function ModernCatalog({
               <p className="text-[10px] font-bold uppercase tracking-widest text-store-primary">
                 Storefront
               </p>
-              <h1 className="text-2xl font-black text-store-text">All products</h1>
+              <h1 className="text-2xl font-black text-store-text">{activeCategoryName}</h1>
             </div>
             <p className="text-sm text-store-muted">
               {filteredProducts.length} results{isPending ? '…' : ''}

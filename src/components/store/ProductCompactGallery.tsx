@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import ProductGalleryNav from '@/components/store/ProductGalleryNav'
+import { useProductGallery } from '@/hooks/use-product-gallery'
 
 type ProductCompactGalleryProps = {
   images: string[]
@@ -10,11 +11,8 @@ type ProductCompactGalleryProps = {
 
 /** Constrained gallery for modern product — avoids full-viewport hero images. */
 export default function ProductCompactGallery({ images, alt }: ProductCompactGalleryProps) {
-  const [activeIndex, setActiveIndex] = useState(0)
-
-  useEffect(() => {
-    setActiveIndex(0)
-  }, [images])
+  const { activeIndex, setActiveIndex, goToPrevious, goToNext, onTouchStart, onTouchEnd, hasMultiple } =
+    useProductGallery(images)
 
   if (images.length === 0) {
     return (
@@ -25,11 +23,14 @@ export default function ProductCompactGallery({ images, alt }: ProductCompactGal
   }
 
   const activeImage = images[activeIndex] ?? images[0]
-  const hasMultiple = images.length > 1
 
   return (
     <div className="space-y-3">
-      <div className="relative mx-auto aspect-[4/3] max-h-[min(420px,45vh)] w-full overflow-hidden rounded-xl bg-store-subtle shadow-sm">
+      <div
+        className="relative mx-auto aspect-[4/3] max-h-[min(420px,45vh)] w-full touch-pan-y overflow-hidden rounded-xl bg-store-subtle shadow-sm"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         <Image
           src={activeImage}
           alt={alt}
@@ -37,26 +38,16 @@ export default function ProductCompactGallery({ images, alt }: ProductCompactGal
           className="object-contain p-2"
           priority
           sizes="(max-width: 1024px) 100vw, 40vw"
+          draggable={false}
         />
         {hasMultiple ? (
-          <>
-            <button
-              type="button"
-              onClick={() => setActiveIndex((i) => (i === 0 ? images.length - 1 : i - 1))}
-              aria-label="Previous image"
-              className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md bg-store-bg/90 text-store-text shadow"
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveIndex((i) => (i === images.length - 1 ? 0 : i + 1))}
-              aria-label="Next image"
-              className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md bg-store-bg/90 text-store-text shadow"
-            >
-              ›
-            </button>
-          </>
+          <ProductGalleryNav
+            onPrevious={goToPrevious}
+            onNext={goToNext}
+            activeIndex={activeIndex}
+            total={images.length}
+            variant="square"
+          />
         ) : null}
       </div>
       {hasMultiple ? (

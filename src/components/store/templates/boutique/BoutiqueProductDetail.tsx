@@ -108,7 +108,11 @@ export default function BoutiqueProductDetail({ store, product }: ProductTemplat
                 <button
                   type="button"
                   disabled
-                  className="w-full rounded-full bg-store-subtle py-3.5 text-sm font-semibold uppercase tracking-wider text-store-muted"
+                  className={`w-full rounded-full py-3.5 text-sm font-semibold uppercase tracking-wider ${
+                    soldOut
+                      ? 'bg-store-stock-out/10 text-store-stock-out'
+                      : 'bg-store-subtle text-store-muted'
+                  }`}
                 >
                   {soldOut ? 'Sold out' : 'Unavailable'}
                 </button>

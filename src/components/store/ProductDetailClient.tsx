@@ -40,7 +40,11 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
     <button
       type="button"
       disabled
-      className="w-full cursor-not-allowed rounded-full bg-store-subtle px-6 py-3 text-sm font-semibold text-store-muted sm:py-4 sm:text-base"
+      className={`w-full cursor-not-allowed rounded-full px-6 py-3 text-sm font-semibold sm:py-4 sm:text-base ${
+        soldOut
+          ? 'bg-store-stock-out/10 text-store-stock-out'
+          : 'bg-store-subtle text-store-muted'
+      }`}
     >
       {soldOut ? 'Sold Out' : 'Out of Stock'}
     </button>
