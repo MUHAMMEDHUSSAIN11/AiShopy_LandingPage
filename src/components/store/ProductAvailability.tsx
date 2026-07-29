@@ -10,14 +10,11 @@ type ProductAvailabilityProps = {
 export default function ProductAvailability({
   label,
   outOfStock,
-  soldOut,
   className = '',
   size = 'sm',
 }: ProductAvailabilityProps) {
   const tone = outOfStock
-    ? soldOut
-      ? 'text-store-muted'
-      : 'text-store-stock-out'
+    ? 'text-store-stock-out'
     : 'text-store-stock-in'
 
   return (

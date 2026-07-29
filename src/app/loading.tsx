@@ -1,11 +1,16 @@
 import StorePageSkeleton from '@/components/store/skeletons/StorePageSkeleton'
+import StoreThemedSkeleton from '@/components/store/skeletons/StoreThemedSkeleton'
 import { getStoreSlugFromHeaders } from '@/lib/server-api'
 
 export default async function Loading() {
   const storeSlug = await getStoreSlugFromHeaders()
 
   if (storeSlug) {
-    return <StorePageSkeleton />
+    return (
+      <StoreThemedSkeleton>
+        <StorePageSkeleton />
+      </StoreThemedSkeleton>
+    )
   }
 
   return (

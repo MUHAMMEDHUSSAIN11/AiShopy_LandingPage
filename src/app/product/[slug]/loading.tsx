@@ -1,5 +1,10 @@
 import ProductPageSkeleton from '@/components/store/skeletons/ProductPageSkeleton'
+import StoreThemedSkeleton from '@/components/store/skeletons/StoreThemedSkeleton'
 
 export default function ProductLoading() {
-  return <ProductPageSkeleton />
+  return (
+    <StoreThemedSkeleton>
+      <ProductPageSkeleton />
+    </StoreThemedSkeleton>
+  )
 }

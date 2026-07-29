@@ -33,7 +33,11 @@ export default function ModernProductDetail({ store, product }: ProductTemplateP
     <button
       type="button"
       disabled
-      className="w-full rounded-md bg-store-subtle py-3 text-sm font-semibold text-store-muted"
+      className={`w-full rounded-md py-3 text-sm font-semibold ${
+        soldOut
+          ? 'bg-store-stock-out/10 text-store-stock-out'
+          : 'bg-store-subtle text-store-muted'
+      }`}
     >
       {soldOut ? 'Sold out' : 'Out of stock'}
     </button>
@@ -80,7 +84,7 @@ export default function ModernProductDetail({ store, product }: ProductTemplateP
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
+      <main className="mx-auto max-w-5xl px-4 py-6 pb-24 sm:py-8 lg:pb-8">
         <div className="grid gap-8 lg:grid-cols-5 lg:gap-10">
           <div className="lg:col-span-2">
             <ProductCompactGallery images={images} alt={product.name} />
@@ -152,11 +156,9 @@ export default function ModernProductDetail({ store, product }: ProductTemplateP
         </div>
       </main>
 
-      {inStock ? (
-        <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-store-border bg-store-bg/95 p-4 backdrop-blur lg:hidden">
-          {purchaseRow}
-        </div>
-      ) : null}
+      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-store-border bg-store-bg/95 p-4 backdrop-blur lg:hidden">
+        {purchaseRow}
+      </div>
     </div>
   )
 }
