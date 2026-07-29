@@ -1,28 +1,11 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import BackLink from '@/components/store/BackLink'
-import ProductImageGallery from '@/components/store/ProductImageGallery'
 import CartIcon from '@/components/store/CartIcon'
+import ProductAvailability from '@/components/store/ProductAvailability'
+import ProductImageGallery from '@/components/store/ProductImageGallery'
+import { useProductDetail } from '@/hooks/use-product-detail'
 import { formatPrice } from '@/lib/format'
-import {
-  buildCartLineFromProduct,
-  findVariantByOptions,
-  formatSelectedOptionsLabel,
-  getCompareAtPrice,
-  getDefaultVariant,
-  getDisplayPrice,
-  getProductImages,
-  getProductStockLabel,
-  getVariantOptionGroups,
-  isProductInStock,
-  isProductSoldOut,
-  isVariantPurchasable,
-  resolveVariantForSelection,
-} from '@/lib/product-utils'
-import { useCartStore } from '@/stores/cart-store'
-import { buildCartItemId } from '@/types/cart'
 import type { Product } from '@/types/product'
 import type { Store } from '@/types/store'
 
@@ -31,107 +14,103 @@ type ProductDetailClientProps = {
   product: Product
 }
 
+/** Classic template: two-column product page (unchanged default). */
 export default function ProductDetailClient({ store, product }: ProductDetailClientProps) {
-  const router = useRouter()
-  const cartCount = useCartStore((state) =>
-    state.items.reduce((sum, line) => sum + line.quantity, 0),
+  const {
+    cartCount,
+    optionGroups,
+    selectedOptions,
+    addedMessage,
+    isAdding,
+    images,
+    price,
+    compareAtPrice,
+    inStock,
+    soldOut,
+    availabilityLabel,
+    selectedLabel,
+    inCart,
+    handleOptionSelect,
+    handleAddToCart,
+    goToCart,
+    getHref,
+  } = useProductDetail(store, product)
+
+  const actionButtons = !inStock ? (
+    <button
+      type="button"
+      disabled
+      className="w-full cursor-not-allowed rounded-full bg-store-subtle px-6 py-3 text-sm font-semibold text-store-muted sm:py-4 sm:text-base"
+    >
+      {soldOut ? 'Sold Out' : 'Out of Stock'}
+    </button>
+  ) : (
+    <div className="flex flex-col gap-3 sm:flex-row">
+      {inCart ? (
+        <button
+          type="button"
+          onClick={goToCart}
+          className="inline-flex flex-1 items-center justify-center rounded-full border border-store-primary bg-store-primary-soft px-6 py-3 text-sm font-semibold text-store-primary sm:py-4 sm:text-base"
+        >
+          Go to Cart
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={isAdding}
+          onClick={() => handleAddToCart(false)}
+          className="inline-flex flex-1 items-center justify-center rounded-full border border-store-primary px-6 py-3 text-sm font-semibold text-store-primary transition hover:bg-store-primary-soft disabled:opacity-60 sm:py-4 sm:text-base"
+        >
+          Add to Cart
+        </button>
+      )}
+      <button
+        type="button"
+        disabled={isAdding}
+        onClick={() => handleAddToCart(true)}
+        className="inline-flex flex-1 items-center justify-center rounded-full bg-store-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-store-primary-hover disabled:opacity-60 sm:py-4 sm:text-base"
+      >
+        Buy Now
+      </button>
+    </div>
   )
-  const addItem = useCartStore((state) => state.addItem)
-  const isAddingRef = useRef(false)
-
-  const optionGroups = useMemo(() => getVariantOptionGroups(product.variants), [product.variants])
-
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
-    const defaultVariant = getDefaultVariant(product)
-    return defaultVariant?.options ?? {}
-  })
-  const [addedMessage, setAddedMessage] = useState('')
-  const [isAdding, setIsAdding] = useState(false)
-
-  const selectedVariant = useMemo(() => {
-    if (product.variants.length === 0) return null
-    return findVariantByOptions(product.variants, selectedOptions)
-  }, [product.variants, selectedOptions])
-
-  const cartItemId = buildCartItemId(product.id, selectedVariant?.id)
-  const inCart = useCartStore((state) => state.items.some((line) => line.id === cartItemId))
-
-  const images = getProductImages(product, selectedVariant)
-  const price = getDisplayPrice(product, selectedVariant)
-  const compareAtPrice = getCompareAtPrice(product, selectedVariant)
-  const inStock = selectedVariant
-    ? isVariantPurchasable(selectedVariant)
-    : isProductInStock(product)
-  const soldOut = isProductSoldOut(product, selectedVariant)
-  const availabilityLabel = getProductStockLabel(product, selectedVariant)
-  const selectedLabel = formatSelectedOptionsLabel(optionGroups, selectedOptions)
-
-  const handleOptionSelect = (key: string, value: string) => {
-    const { options } = resolveVariantForSelection(product.variants, selectedOptions, key, value)
-    setSelectedOptions(options)
-    setAddedMessage('')
-  }
-
-  const handleAddToCart = (goToCheckout = false) => {
-    if (!inStock || isAddingRef.current) return
-
-    isAddingRef.current = true
-    setIsAdding(true)
-
-    addItem(store.slug, buildCartLineFromProduct(product, selectedVariant))
-
-    if (goToCheckout) {
-      router.push('/checkout')
-      return
-    }
-
-    setAddedMessage('Added to cart')
-    window.setTimeout(() => {
-      setAddedMessage('')
-      isAddingRef.current = false
-      setIsAdding(false)
-    }, 600)
-  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-100 bg-white">
+    <div className="min-h-screen bg-store-bg-shell template-page-enter">
+      <header className="border-b border-store-border bg-store-bg">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          <BackLink href="/" label={`Back to ${store.name}`} />
-          <CartIcon count={cartCount} onClick={() => router.push('/cart')} />
+          <BackLink href={getHref('/')} label={`Back to ${store.name}`} />
+          <CartIcon count={cartCount} onClick={goToCart} />
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
           <ProductImageGallery images={images} alt={product.name} />
-
           <div>
-            <p className="text-sm font-medium text-gray-500">
-              SKU: {selectedVariant?.sku || product.sku}
-            </p>
-            <h1 className="mt-2 text-2xl font-bold text-brand-dark sm:text-3xl">{product.name}</h1>
-
+            <p className="text-sm font-medium text-store-muted">SKU: {product.sku}</p>
+            <h1 className="mt-2 text-2xl font-bold text-store-text sm:text-3xl">{product.name}</h1>
             <div className="mt-3 flex flex-wrap items-baseline gap-3 sm:mt-4">
-              <p className="text-2xl font-bold text-brand-green sm:text-3xl">{formatPrice(price)}</p>
+              <p className="text-2xl font-bold text-store-primary sm:text-3xl">{formatPrice(price)}</p>
               {compareAtPrice ? (
-                <p className="text-base text-gray-400 line-through sm:text-lg">{formatPrice(compareAtPrice)}</p>
+                <p className="text-base text-store-muted line-through sm:text-lg">
+                  {formatPrice(compareAtPrice)}
+                </p>
               ) : null}
             </div>
-
-            <p
-              className={`mt-2 text-sm font-medium ${
-                inStock ? 'text-brand-green' : 'text-gray-400'
-              }`}
-            >
-              {availabilityLabel}
-            </p>
-
+            <div className="mt-2">
+              <ProductAvailability
+                label={availabilityLabel}
+                outOfStock={!inStock}
+                soldOut={soldOut}
+                size="md"
+              />
+            </div>
             {optionGroups.length > 0 && (
-              <div className="mt-4 space-y-3 sm:mt-6 sm:space-y-4">
+              <div className="mt-4 space-y-3 sm:mt-6">
                 {optionGroups.map((group) => (
                   <div key={group.key}>
-                    <p className="text-sm font-semibold text-gray-700">{group.key}</p>
+                    <p className="text-sm font-semibold text-store-text">{group.key}</p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {group.values.map((value) => {
                         const isSelected = selectedOptions[group.key] === value
@@ -142,8 +121,8 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
                             onClick={() => handleOptionSelect(group.key, value)}
                             className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                               isSelected
-                                ? 'border-brand-green bg-brand-green text-white'
-                                : 'border-gray-200 bg-white text-gray-700 hover:border-brand-green'
+                                ? 'border-store-primary bg-store-primary text-white'
+                                : 'border-store-border bg-store-bg text-store-text hover:border-store-primary'
                             }`}
                           >
                             {value}
@@ -154,55 +133,17 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
                   </div>
                 ))}
                 {selectedLabel ? (
-                  <p className="text-sm text-gray-500">Selected: {selectedLabel}</p>
+                  <p className="text-sm text-store-muted">Selected: {selectedLabel}</p>
                 ) : null}
               </div>
             )}
-
             {addedMessage ? (
-              <p className="mt-4 text-sm font-medium text-brand-green">{addedMessage}</p>
+              <p className="mt-4 text-sm font-medium text-store-stock-in">{addedMessage}</p>
             ) : null}
-
-            <p className="mt-4 text-sm leading-relaxed text-gray-600 sm:mt-6 sm:text-base">{product.description}</p>
-
-            {!inStock ? (
-              <button
-                type="button"
-                disabled
-                className="mt-6 w-full cursor-not-allowed rounded-full bg-gray-200 px-6 py-3 text-sm font-semibold text-gray-500 sm:mt-8 sm:py-4 sm:text-base"
-              >
-                {soldOut ? 'Sold Out' : 'Out of Stock'}
-              </button>
-            ) : (
-              <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
-                {inCart ? (
-                  <button
-                    type="button"
-                    onClick={() => router.push('/cart')}
-                    className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-3 text-sm font-semibold text-brand-green transition hover:bg-green-50 sm:py-4 sm:text-base"
-                  >
-                    Go to Cart
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={isAdding}
-                    onClick={() => handleAddToCart(false)}
-                    className="inline-flex flex-1 items-center justify-center rounded-full border border-brand-green px-6 py-3 text-sm font-semibold text-brand-green transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60 sm:py-4 sm:text-base"
-                  >
-                    Add to Cart
-                  </button>
-                )}
-                <button
-                  type="button"
-                  disabled={isAdding}
-                  onClick={() => handleAddToCart(true)}
-                  className="inline-flex flex-1 items-center justify-center rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60 sm:py-4 sm:text-base"
-                >
-                  Buy Now
-                </button>
-              </div>
-            )}
+            <p className="mt-4 text-sm leading-relaxed text-store-muted sm:mt-6 sm:text-base">
+              {product.description}
+            </p>
+            <div className="mt-6 sm:mt-8">{actionButtons}</div>
           </div>
         </div>
       </main>

@@ -1,3 +1,5 @@
+import type { ThemeConfig } from '@/types/store'
+
 export type RazorpayHandlerResponse = {
   razorpay_payment_id: string
   razorpay_order_id: string
@@ -38,6 +40,18 @@ const LOAD_TIMEOUT_MS = 15000
 // Dedupes concurrent load attempts. Reset to null on failure so a later retry
 // can start a fresh load instead of awaiting a dead promise.
 let loadPromise: Promise<RazorpayConstructor> | null = null
+
+const DEFAULT_THEME_COLOR = '#16a34a'
+const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
+
+/**
+ * Color for the Razorpay checkout popup: the store's configured primary
+ * color when valid, otherwise the default AiShopy green.
+ */
+export function getRazorpayThemeColor(themeConfig?: ThemeConfig | null): string {
+  const primary = themeConfig?.colors?.primary
+  return primary && HEX_COLOR_RE.test(primary) ? primary : DEFAULT_THEME_COLOR
+}
 
 /**
  * Loads the Razorpay Checkout script once and resolves with the constructor.

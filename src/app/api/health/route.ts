@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { AISHOPY_API_URL } from '@/lib/env'
 
+const AISHOPY_API_URL =
+  process.env.AISHOPY_API_URL?.replace(/\/$/, '')
 export async function GET() {
   return NextResponse.json({
     status: 'ok',

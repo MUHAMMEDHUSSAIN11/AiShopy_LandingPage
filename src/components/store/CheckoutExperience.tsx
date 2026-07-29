@@ -4,17 +4,24 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { usePreview, useStoreHref } from '@/contexts/PreviewContext'
+import { useStoreTemplate } from '@/contexts/StoreTemplateContext'
 import {
   createCartOrder,
   lookupCustomerByPhone,
   uploadPaymentProof,
   verifyRazorpayPayment,
 } from '@/lib/customer'
-import { loadRazorpayScript, type RazorpayHandlerResponse } from '@/lib/razorpay'
+import {
+  getRazorpayThemeColor,
+  loadRazorpayScript,
+  type RazorpayHandlerResponse,
+} from '@/lib/razorpay'
 import { checkoutSchema, phoneSchema, type CheckoutFormData } from '@/lib/checkout-schema'
 import { formatPrice } from '@/lib/format'
 import type { OrderCreateResponse, ShippingAddress } from '@/types/customer'
 import { getEnabledPaymentMethods, getStoreUpiDetails, type Store } from '@/types/store'
+import type { StoreTemplateId } from '@/types/store'
 
 const MAX_PROOF_SIZE_BYTES = 5 * 1024 * 1024 // 5MB, matches the upload API limit.
 
@@ -33,6 +40,8 @@ type CheckoutExperienceProps = {
   items: CheckoutLineItem[]
   emptyState?: ReactNode
   onOrderPlaced?: () => void
+  previewMode?: boolean
+  layout?: StoreTemplateId
 }
 
 type FormErrors = Partial<Record<keyof CheckoutFormData, string>>
@@ -73,8 +82,30 @@ export default function CheckoutExperience({
   items,
   emptyState,
   onOrderPlaced,
+  previewMode: previewModeProp,
+  layout: layoutProp,
 }: CheckoutExperienceProps) {
   const router = useRouter()
+  const { isPreview } = usePreview()
+  const getHref = useStoreHref()
+  const layoutFromContext = useStoreTemplate()
+  const layout = layoutProp ?? layoutFromContext
+  const shellClass =
+    layout === 'boutique'
+      ? 'checkout-boutique'
+      : layout === 'modern'
+        ? 'checkout-modern'
+        : 'checkout-classic'
+  const buttonRound = layout === 'modern' ? 'rounded-md' : 'rounded-full'
+  const previewMode = previewModeProp ?? isPreview
+  const inputBaseClass =
+    'bg-store-bg text-store-text border-store-border placeholder:text-store-muted'
+  const orderSummaryClass =
+    layout === 'modern'
+      ? 'space-y-3 border-0 bg-store-subtle'
+      : layout === 'classic'
+        ? 'space-y-3 border-b border-store-border pb-4'
+        : 'space-y-3 rounded-2xl border border-store-border bg-store-bg p-4 shadow-sm'
 
   const paymentOptions = useMemo(() => {
     const enabled = getEnabledPaymentMethods(store)
@@ -133,6 +164,13 @@ export default function CheckoutExperience({
 
     setLoading(true)
     try {
+      if (previewMode) {
+        setSavedAddresses([])
+        setForm({ ...emptyForm, phone_number: cleaned, name: 'Demo Customer' })
+        setStep('details')
+        return
+      }
+
       const response = await lookupCustomerByPhone(store.slug, cleaned)
       setSavedAddresses(response.addresses)
       setSelectedAddressIndex(null)
@@ -254,6 +292,11 @@ export default function CheckoutExperience({
     setLoading(true)
     setProcessingLabel('Creating order…')
     try {
+      if (previewMode) {
+        finishWithSuccess('DEMO-001')
+        return
+      }
+
       const response = await createCartOrder(store.slug, {
         items: items.map((item) => ({
           productId: item.productId,
@@ -284,7 +327,7 @@ export default function CheckoutExperience({
   const finishWithSuccess = (orderId: string) => {
     setRedirecting(true)
     onOrderPlaced?.()
-    router.push(`/order/success?orderId=${encodeURIComponent(orderId)}`)
+    router.push(getHref(`/order/success?orderId=${encodeURIComponent(orderId)}`))
   }
 
   const startRazorpayCheckout = async (order: OrderCreateResponse) => {
@@ -309,7 +352,7 @@ export default function CheckoutExperience({
       description: order.orderNumber ? `Order ${order.orderNumber}` : 'Order payment',
       image: store.logoUrl,
       prefill: { name: form.name, contact: form.phone_number },
-      theme: { color: '#16a34a' },
+      theme: { color: getRazorpayThemeColor(store.themeConfig) },
       handler: (response) => {
         void confirmRazorpayPayment(order, response)
       },
@@ -364,46 +407,56 @@ export default function CheckoutExperience({
     }
   }
 
+  const showInlineOrderSummary = layout !== 'boutique' && layout !== 'modern'
+
   return (
     <>
-    <div className="space-y-8">
-      <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+    <div className={shellClass}>
+      {layout === 'modern' ? (
+        <p className="checkout-step-label mb-3">
+          Step {step === 'phone' ? '1' : '2'} — {step === 'phone' ? 'Verify phone' : 'Delivery & pay'}
+        </p>
+      ) : null}
+    <div className="checkout-panel space-y-8">
+      {showInlineOrderSummary ? (
+      <div className={orderSummaryClass}>
         {items.map((item) => (
           <div
             key={item.variantId ? `${item.productId}:${item.variantId}` : item.productId}
-            className="flex gap-4 border-b border-gray-100 pb-3 last:border-0 last:pb-0"
+            className="flex gap-4 border-b border-store-border pb-3 last:border-0 last:pb-0"
           >
             {item.imageUrl ? (
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-store-subtle">
                 <Image src={item.imageUrl} alt={item.name} fill className="object-cover" sizes="64px" />
               </div>
             ) : null}
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-brand-dark">{item.name}</p>
-              {item.variantName ? <p className="text-sm text-gray-500">{item.variantName}</p> : null}
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="font-semibold text-store-text">{item.name}</p>
+              {item.variantName ? <p className="text-sm text-store-muted">{item.variantName}</p> : null}
+              <p className="mt-1 text-sm text-store-muted">
                 Qty {item.quantity} · {formatPrice(item.price * item.quantity)}
               </p>
             </div>
           </div>
         ))}
-        <div className="flex items-center justify-between border-t border-gray-100 pt-3 font-bold">
+        <div className="flex items-center justify-between border-t border-store-border pt-3 font-bold text-store-text">
           <span>Total</span>
-          <span className="text-brand-green">{formatPrice(totalPrice)}</span>
+          <span className="text-store-primary">{formatPrice(totalPrice)}</span>
         </div>
       </div>
+      ) : null}
 
       {step === 'phone' ? (
-        <form onSubmit={handlePhoneCheck} className="space-y-4">
+        <form onSubmit={handlePhoneCheck} className="w-full space-y-4">
           <div>
-            <h2 className="text-lg font-bold text-brand-dark">Enter your phone number</h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <h2 className="text-lg font-bold text-store-text">Enter your phone number</h2>
+            <p className="mt-1 text-sm text-store-muted">
               We&apos;ll check for saved delivery addresses on your account.
             </p>
           </div>
 
-          <div>
-            <label htmlFor="phone-check" className="block text-sm font-medium text-gray-700">
+          <div className="w-full">
+            <label htmlFor="phone-check" className="block text-sm font-medium text-store-text">
               Phone Number
             </label>
             <input
@@ -412,8 +465,8 @@ export default function CheckoutExperience({
               inputMode="numeric"
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 10))}
-              className={`mt-1 w-full rounded-lg border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand-green/20 ${
-                phoneError ? 'border-red-400' : 'border-gray-200 focus:border-brand-green'
+              className={`mt-1 w-full rounded-lg border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-store-primary/20 ${inputBaseClass} ${
+                phoneError ? 'border-red-400' : 'focus:border-store-primary'
               }`}
               placeholder="10-digit mobile number"
             />
@@ -423,22 +476,22 @@ export default function CheckoutExperience({
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-brand-green py-3 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-60"
+            className={`w-full ${buttonRound} bg-store-primary py-3 text-sm font-semibold text-white hover:bg-store-primary-hover disabled:opacity-60`}
           >
             {loading ? 'Checking...' : 'Continue'}
           </button>
         </form>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-brand-dark">Delivery details</h2>
-              <p className="mt-1 text-sm text-gray-500">Phone: {form.phone_number}</p>
+        <form onSubmit={handleSubmit} className="w-full space-y-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-lg font-bold text-store-text">Delivery details</h2>
+              <p className="mt-1 text-sm text-store-muted">Phone: {form.phone_number}</p>
             </div>
             <button
               type="button"
               onClick={() => setStep('phone')}
-              className="text-sm font-medium text-brand-green hover:underline"
+              className="text-sm font-medium text-store-primary hover:underline"
             >
               Change
             </button>
@@ -448,21 +501,21 @@ export default function CheckoutExperience({
             <button
               type="button"
               onClick={() => setAddressModalOpen(true)}
-              className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-left text-sm transition hover:border-brand-green"
+              className="flex w-full items-center justify-between rounded-xl border border-store-border bg-store-bg px-4 py-3 text-left text-sm transition hover:border-store-primary"
             >
               {selectedAddressIndex !== null && savedAddresses[selectedAddressIndex] ? (
                 <span className="min-w-0">
-                  <span className="font-semibold text-brand-dark">
+                  <span className="font-semibold text-store-text">
                     {savedAddresses[selectedAddressIndex].name || 'Saved address'}
                   </span>
-                  <span className="mt-0.5 block truncate text-gray-500">
+                  <span className="mt-0.5 block truncate text-store-muted">
                     {summariseAddress(savedAddresses[selectedAddressIndex])}
                   </span>
                 </span>
               ) : (
-                <span className="font-medium text-brand-green">Choose a saved address</span>
+                <span className="font-medium text-store-primary">Choose a saved address</span>
               )}
-              <span className="ml-3 shrink-0 text-sm font-medium text-brand-green">Change</span>
+              <span className="ml-3 shrink-0 text-sm font-medium text-store-primary">Change</span>
             </button>
           ) : null}
 
@@ -525,7 +578,7 @@ export default function CheckoutExperience({
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-gray-700">Payment method</p>
+            <p className="text-sm font-semibold text-store-text">Payment method</p>
             <div className="space-y-2">
               {paymentOptions.map((option) => {
                 const isSelected = paymentMethod === option.key
@@ -534,8 +587,8 @@ export default function CheckoutExperience({
                     key={option.key}
                     className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${
                       isSelected
-                        ? 'border-brand-green bg-green-50'
-                        : 'border-gray-200 bg-white hover:border-brand-green'
+                        ? 'border-store-primary bg-store-primary-soft'
+                        : 'border-store-border bg-store-bg hover:border-store-primary'
                     }`}
                   >
                     <input
@@ -544,9 +597,9 @@ export default function CheckoutExperience({
                       value={option.key}
                       checked={isSelected}
                       onChange={() => setPaymentMethod(option.key)}
-                      className="h-4 w-4 accent-brand-green"
+                      className="h-4 w-4 accent-store-primary"
                     />
-                    <span className="font-medium text-brand-dark">{option.label}</span>
+                    <span className="font-medium text-store-text">{option.label}</span>
                   </label>
                 )
               })}
@@ -554,26 +607,26 @@ export default function CheckoutExperience({
           </div>
 
           {isRazorpay ? (
-            <p className="rounded-xl border border-brand-green/30 bg-green-50/40 px-4 py-3 text-xs text-gray-600">
+            <p className="rounded-xl border border-store-primary/30 bg-store-primary-soft px-4 py-3 text-xs text-store-muted">
               You&apos;ll complete a secure payment of {formatPrice(totalPrice)} via Razorpay after
               placing the order. Your order is confirmed only once payment succeeds.
             </p>
           ) : null}
 
           {isUpi ? (
-            <div className="space-y-3 rounded-xl border border-brand-green/30 bg-green-50/40 p-4">
+            <div className="space-y-3 rounded-xl border border-store-primary/30 bg-store-primary-soft p-4">
               <div>
-                <p className="text-sm font-semibold text-brand-dark">Pay via UPI</p>
-                <p className="mt-1 text-xs text-gray-600">
+                <p className="text-sm font-semibold text-store-text">Pay via UPI</p>
+                <p className="mt-1 text-xs text-store-muted">
                   Send {formatPrice(totalPrice)} to the UPI ID below, then upload a screenshot of the
                   payment to confirm your order.
                 </p>
               </div>
 
               {upiDetails?.vpa || upiDetails?.qrImageUrl ? (
-                <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-3">
+                <div className="flex items-center gap-4 rounded-lg border border-store-border bg-store-bg p-3">
                   {upiDetails?.qrImageUrl ? (
-                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md bg-gray-100">
+                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md bg-store-subtle">
                       <Image
                         src={upiDetails.qrImageUrl}
                         alt="UPI QR code"
@@ -585,23 +638,23 @@ export default function CheckoutExperience({
                   ) : null}
                   <div className="min-w-0 text-sm">
                     {upiDetails?.displayName ? (
-                      <p className="font-semibold text-brand-dark">{upiDetails.displayName}</p>
+                      <p className="font-semibold text-store-text">{upiDetails.displayName}</p>
                     ) : null}
                     {upiDetails?.vpa ? (
-                      <p className="mt-0.5 break-all font-mono text-gray-700">{upiDetails.vpa}</p>
+                      <p className="mt-0.5 break-all font-mono text-store-text">{upiDetails.vpa}</p>
                     ) : null}
                   </div>
                 </div>
               ) : null}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-store-text">
                   Upload payment screenshot <span className="text-red-500">*</span>
                 </label>
 
                 {proofPreview ? (
                   <div className="mt-2 flex items-start gap-3">
-                    <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white">
+                    <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg border border-store-border bg-store-bg">
                       {/* Local object URL / remote URL preview — plain img avoids next/image host config. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -610,14 +663,14 @@ export default function CheckoutExperience({
                         className="h-full w-full object-cover"
                       />
                       {proofUploading ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-white/70">
-                          <span className="text-xs font-medium text-brand-dark">Uploading…</span>
+                        <div className="absolute inset-0 flex items-center justify-center bg-store-bg/70">
+                          <span className="text-xs font-medium text-store-text">Uploading…</span>
                         </div>
                       ) : null}
                     </div>
                     <div className="flex flex-col gap-2 text-sm">
                       {proofUrl && !proofUploading ? (
-                        <span className="inline-flex items-center gap-1 font-medium text-brand-green">
+                        <span className="inline-flex items-center gap-1 font-medium text-store-primary">
                           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
@@ -628,7 +681,7 @@ export default function CheckoutExperience({
                         type="button"
                         onClick={handleRemoveProof}
                         disabled={proofUploading}
-                        className="text-left font-medium text-gray-500 hover:text-red-500 disabled:opacity-50"
+                        className="text-left font-medium text-store-muted hover:text-red-500 disabled:opacity-50"
                       >
                         Remove
                       </button>
@@ -636,7 +689,7 @@ export default function CheckoutExperience({
                         type="button"
                         onClick={() => proofInputRef.current?.click()}
                         disabled={proofUploading}
-                        className="text-left font-medium text-brand-green hover:underline disabled:opacity-50"
+                        className="text-left font-medium text-store-primary hover:underline disabled:opacity-50"
                       >
                         Replace image
                       </button>
@@ -647,13 +700,13 @@ export default function CheckoutExperience({
                     type="button"
                     onClick={() => proofInputRef.current?.click()}
                     disabled={proofUploading}
-                    className="mt-2 flex w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-gray-300 bg-white px-4 py-6 text-sm text-gray-500 transition hover:border-brand-green hover:text-brand-green disabled:opacity-60"
+                    className="mt-2 flex w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-store-border bg-store-bg px-4 py-6 text-sm text-store-muted transition hover:border-store-primary hover:text-store-primary disabled:opacity-60"
                   >
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V18a2 2 0 002 2h14a2 2 0 002-2v-1.5M16 8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                     <span className="font-medium">{proofUploading ? 'Uploading…' : 'Tap to upload screenshot'}</span>
-                    <span className="text-xs text-gray-400">PNG, JPG or WebP · up to 5MB</span>
+                    <span className="text-xs text-store-muted">PNG, JPG or WebP · up to 5MB</span>
                   </button>
                 )}
 
@@ -671,13 +724,13 @@ export default function CheckoutExperience({
           ) : null}
 
           {submitError && (
-            <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{submitError}</p>
+            <p className="rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-500">{submitError}</p>
           )}
 
           <button
             type="submit"
             disabled={loading || proofUploading}
-            className="w-full rounded-full bg-brand-green py-3.5 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-60"
+            className={`w-full ${buttonRound} bg-store-primary py-3.5 text-sm font-semibold text-white hover:bg-store-primary-hover disabled:opacity-60`}
           >
             {loading
               ? processingLabel || 'Placing Order...'
@@ -690,6 +743,7 @@ export default function CheckoutExperience({
         </form>
       )}
     </div>
+    </div>
 
     {addressModalOpen ? (
       <div
@@ -700,19 +754,19 @@ export default function CheckoutExperience({
         onClick={() => setAddressModalOpen(false)}
       >
         <div
-          className="flex max-h-[85vh] w-full max-w-md flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
+          className="flex max-h-[85vh] w-full max-w-md flex-col rounded-t-2xl bg-store-bg shadow-xl sm:rounded-2xl"
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+          <div className="flex items-center justify-between border-b border-store-border px-5 py-4">
             <div>
-              <h3 className="text-lg font-bold text-brand-dark">Choose delivery address</h3>
-              <p className="mt-0.5 text-sm text-gray-500">Select a saved address or add a new one.</p>
+              <h3 className="text-lg font-bold text-store-text">Choose delivery address</h3>
+              <p className="mt-0.5 text-sm text-store-muted">Select a saved address or add a new one.</p>
             </div>
             <button
               type="button"
               onClick={() => setAddressModalOpen(false)}
               aria-label="Close"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-brand-dark"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-store-muted transition hover:bg-store-subtle hover:text-store-text"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -730,25 +784,25 @@ export default function CheckoutExperience({
                   onClick={() => handleSelectSavedAddress(index)}
                   className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition ${
                     isSelected
-                      ? 'border-brand-green bg-green-50'
-                      : 'border-gray-200 bg-white hover:border-brand-green'
+                      ? 'border-store-primary bg-store-primary-soft'
+                      : 'border-store-border bg-store-bg hover:border-store-primary'
                   }`}
                 >
-                  <span className="font-semibold text-brand-dark">{address.name || 'Saved address'}</span>
-                  <span className="mt-0.5 block text-gray-500">{summariseAddress(address)}</span>
+                  <span className="font-semibold text-store-text">{address.name || 'Saved address'}</span>
+                  <span className="mt-0.5 block text-store-muted">{summariseAddress(address)}</span>
                   {address.phone_number ? (
-                    <span className="mt-0.5 block text-xs text-gray-400">{address.phone_number}</span>
+                    <span className="mt-0.5 block text-xs text-store-muted">{address.phone_number}</span>
                   ) : null}
                 </button>
               )
             })}
           </div>
 
-          <div className="border-t border-gray-100 px-5 py-4">
+          <div className="border-t border-store-border px-5 py-4">
             <button
               type="button"
               onClick={handleUseNewAddress}
-              className="w-full rounded-full border border-dashed border-brand-green px-4 py-3 text-sm font-semibold text-brand-green transition hover:bg-green-50"
+              className="w-full rounded-full border border-dashed border-store-primary px-4 py-3 text-sm font-semibold text-store-primary transition hover:bg-store-primary-soft"
             >
               + Enter a new address
             </button>
@@ -771,8 +825,8 @@ type CheckoutFieldProps = {
 
 function CheckoutField({ id, label, value, error, onChange, inputMode = 'text' }: CheckoutFieldProps) {
   return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+    <div className="w-full">
+      <label htmlFor={id} className="block text-sm font-medium text-store-text">
         {label}
       </label>
       <input
@@ -781,8 +835,8 @@ function CheckoutField({ id, label, value, error, onChange, inputMode = 'text' }
         inputMode={inputMode}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`mt-1 w-full rounded-lg border px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-green/20 ${
-          error ? 'border-red-400' : 'border-gray-200 focus:border-brand-green'
+        className={`mt-1 w-full rounded-lg border px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-store-primary/20 bg-store-bg text-store-text border-store-border placeholder:text-store-muted ${
+          error ? 'border-red-400' : 'focus:border-store-primary'
         }`}
       />
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}

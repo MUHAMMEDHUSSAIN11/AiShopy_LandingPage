@@ -24,6 +24,26 @@ export function getStoreUpiDetails(store: Store): StoreUpiDetails | null {
   }
 }
 
+export type StoreTemplateId = 'classic' | 'boutique' | 'modern'
+export type ProductCardStyle = 'classic' | 'minimal' | 'bold'
+
+export interface ThemeColors {
+  primary?: string
+  background?: string
+  text?: string
+}
+
+/**
+ * Per-store theming configured from the merchant app (stores.theme_config).
+ * Every field is optional — missing/null config must render exactly the
+ * default AiShopy look (classic template, brand-green palette, classic card).
+ */
+export interface ThemeConfig {
+  template?: StoreTemplateId
+  colors?: ThemeColors
+  productCard?: ProductCardStyle
+}
+
 export interface Store {
   id: string
   name: string
@@ -32,6 +52,7 @@ export interface Store {
   logoUrl?: string
   bannerUrl?: string
   paymentMethods?: StorePaymentMethods
+  themeConfig?: ThemeConfig
 }
 
 export const PAYMENT_METHOD_LABELS: Record<string, string> = {

@@ -8,7 +8,7 @@ import { flattenCategories } from '@/types/category'
 import type { Category } from '@/types/category'
 import type { Product, ProductVariant } from '@/types/product'
 import type { CartOrderItem, OrderCreateResponse, ShippingAddress } from '@/types/customer'
-import type { Store, StorePaymentMethods } from '@/types/store'
+import type { Store, StorePaymentMethods, ThemeConfig } from '@/types/store'
 
 const idSchema = z.union([z.string(), z.number()]).transform(String)
 
@@ -24,6 +24,8 @@ const apiPaymentMethodSchema = z
   })
   .passthrough()
 
+// Accept any shape here (z.unknown) so a missing/null/unexpected theme_config
+// can never fail store parsing; it is narrowed separately in parseThemeConfig.
 const apiStoreSchema = z
   .object({
     id: idSchema,
@@ -33,8 +35,42 @@ const apiStoreSchema = z
     logo_url: z.string().nullable().optional(),
     banner_url: z.string().nullable().optional(),
     payment_methods: z.record(apiPaymentMethodSchema).optional(),
+    theme_config: z.unknown().optional(),
   })
   .passthrough()
+
+const apiThemeConfigSchema = z
+  .object({
+    template: z.string().optional(),
+    colors: z
+      .object({
+        primary: z.string().optional(),
+        background: z.string().optional(),
+        text: z.string().optional(),
+      })
+      .passthrough()
+      .optional(),
+    productCard: z.string().optional(),
+  })
+  .passthrough()
+
+function parseThemeConfig(raw: unknown): ThemeConfig | undefined {
+  if (!raw || typeof raw !== 'object') return undefined
+
+  const parsed = apiThemeConfigSchema.safeParse(raw)
+  if (!parsed.success) return undefined
+
+  const { template, colors, productCard } = parsed.data
+
+  return {
+    template: template === 'boutique' ? 'boutique' : 'classic',
+    colors: colors
+      ? { primary: colors.primary, background: colors.background, text: colors.text }
+      : undefined,
+    productCard:
+      productCard === 'minimal' || productCard === 'bold' ? productCard : 'classic',
+  }
+}
 
 type ApiCategory = {
   id: string
@@ -244,6 +280,7 @@ function mapStore(apiStore: z.infer<typeof apiStoreSchema>): Store {
     logoUrl: apiStore.logo_url ?? undefined,
     bannerUrl: apiStore.banner_url ?? undefined,
     paymentMethods: mapPaymentMethods(apiStore.payment_methods),
+    themeConfig: parseThemeConfig(apiStore.theme_config),
   }
 }
 

@@ -97,7 +97,7 @@ export default function OrderSuccessCelebration({
             onClick={(event) => event.stopPropagation()}
           >
             <motion.div
-              className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl"
+              className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-store-primary-muted text-4xl"
               initial={reduceMotion ? false : { scale: 0 }}
               animate={reduceMotion ? undefined : { scale: [0, 1.2, 1] }}
               transition={reduceMotion ? undefined : { delay: 0.15, duration: 0.5, times: [0, 0.6, 1] }}
@@ -105,11 +105,11 @@ export default function OrderSuccessCelebration({
               🎉
             </motion.div>
 
-            <h2 className="mt-5 text-2xl font-bold text-brand-dark">Order Placed!</h2>
+            <h2 className="mt-5 text-2xl font-bold text-store-text">Order Placed!</h2>
             <p className="mt-2 text-sm text-gray-600">
               {orderId ? (
                 <>
-                  Your order <span className="font-semibold text-brand-dark">#{orderId}</span> has
+                  Your order <span className="font-semibold text-store-text">#{orderId}</span> has
                   been confirmed with {storeName}.
                 </>
               ) : (
@@ -121,14 +121,14 @@ export default function OrderSuccessCelebration({
             <div className="mt-7 flex flex-col gap-2">
               <Link
                 href="/"
-                className="w-full rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600"
+                className="w-full rounded-full bg-store-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-store-primary-hover"
               >
                 Continue Shopping
               </Link>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="w-full rounded-full px-6 py-2.5 text-sm font-medium text-gray-500 transition hover:text-brand-dark"
+                className="w-full rounded-full px-6 py-2.5 text-sm font-medium text-gray-500 transition hover:text-store-text"
               >
                 View order details
               </button>

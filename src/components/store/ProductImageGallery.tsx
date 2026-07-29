@@ -82,8 +82,8 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
               aria-label={`Show image ${index + 1}`}
               className={`relative aspect-square overflow-hidden rounded-lg border-2 transition ${
                 index === activeIndex
-                  ? 'border-brand-green ring-2 ring-brand-green/20'
-                  : 'border-gray-200 hover:border-brand-green/60'
+                  ? 'border-store-primary ring-2 ring-store-primary/20'
+                  : 'border-gray-200 hover:border-store-primary/60'
               }`}
             >
               <Image src={url} alt={`${alt} ${index + 1}`} fill className="object-cover" sizes="100px" />
