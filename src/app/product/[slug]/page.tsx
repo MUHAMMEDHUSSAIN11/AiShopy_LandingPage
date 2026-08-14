@@ -12,85 +12,49 @@ import { getProduct, ProductNotFoundError } from '@/lib/product'
 
 import { getStoreBySlug, StoreNotFoundError } from '@/lib/store'
 
-
-
 type ProductPageProps = {
-
   params: Promise<{ slug: string }>
-
+  searchParams: Promise<{ variant?: string }>
 }
 
-
-
-export default async function ProductPage({ params }: ProductPageProps) {
-
+export default async function ProductPage({ params, searchParams }: ProductPageProps) {
   const storeSlug = await getStoreSlugFromHeaders()
-
   const { slug } = await params
-
-
+  const { variant: initialVariantId } = await searchParams
 
   if (!storeSlug) {
-
     notFound()
-
   }
 
-
-
   try {
-
     const [store, product] = await Promise.all([
-
       getStoreBySlug(storeSlug),
-
       getProduct(storeSlug, slug),
-
     ])
-
-
 
     const ProductView = getTemplatePack(store.themeConfig?.template).ProductDetail
 
-
-
     return (
-
       <StoreTheme themeConfig={store.themeConfig}>
-
-        <ProductView store={store} product={product} />
-
+        <ProductView
+          store={store}
+          product={product}
+          initialVariantId={initialVariantId?.trim() || undefined}
+        />
       </StoreTheme>
-
     )
-
   } catch (error) {
-
     if (error instanceof StoreNotFoundError || error instanceof ProductNotFoundError) {
-
       notFound()
-
     }
 
-
-
     return (
-
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-
         <ErrorMessage
-
           title="Something went wrong"
-
           message="We couldn't load this product. Please refresh and try again."
-
         />
-
       </div>
-
     )
-
   }
-
 }
-

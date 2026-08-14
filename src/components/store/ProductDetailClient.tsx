@@ -12,10 +12,15 @@ import type { Store } from '@/types/store'
 type ProductDetailClientProps = {
   store: Store
   product: Product
+  initialVariantId?: string
 }
 
 /** Classic template: two-column product page (unchanged default). */
-export default function ProductDetailClient({ store, product }: ProductDetailClientProps) {
+export default function ProductDetailClient({
+  store,
+  product,
+  initialVariantId,
+}: ProductDetailClientProps) {
   const {
     cartCount,
     optionGroups,
@@ -34,7 +39,7 @@ export default function ProductDetailClient({ store, product }: ProductDetailCli
     handleAddToCart,
     goToCart,
     getHref,
-  } = useProductDetail(store, product)
+  } = useProductDetail(store, product, initialVariantId)
 
   const actionButtons = !inStock ? (
     <button

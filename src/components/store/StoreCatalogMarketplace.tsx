@@ -9,7 +9,7 @@ import StoreSidebarPanel from '@/components/store/StoreSidebarPanel'
 import MarketplaceCategoryNav from '@/components/store/templates/boutique/MarketplaceCategoryNav'
 import MarketplaceHeader from '@/components/store/templates/boutique/MarketplaceHeader'
 import { useCartReconcile } from '@/hooks/use-cart-reconcile'
-import { flattenCategories, type Category } from '@/types/category'
+import { flattenCategories, filterProductsByCategorySubtree, type Category } from '@/types/category'
 import type { Product } from '@/types/product'
 import type { Store } from '@/types/store'
 
@@ -58,9 +58,7 @@ export default function StoreCatalogMarketplace({
       startTransition(async () => {
         if (previewMode) {
           setProducts(
-            categoryId
-              ? initialProducts.filter((p) => p.categoryId === categoryId)
-              : initialProducts,
+            filterProductsByCategorySubtree(initialProducts, categories, categoryId),
           )
           return
         }
@@ -72,7 +70,7 @@ export default function StoreCatalogMarketplace({
         setProducts(catalog.products)
       })
     },
-    [storeSlug, previewMode, initialProducts],
+    [storeSlug, previewMode, initialProducts, categories],
   )
 
   const filteredProducts = useMemo(() => {

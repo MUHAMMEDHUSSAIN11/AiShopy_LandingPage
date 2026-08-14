@@ -5,8 +5,11 @@ import type { Store } from '@/types/store'
 type ProductDetailProps = {
   store: Store
   product: Product
+  initialVariantId?: string
 }
 
-export default function ProductDetail({ store, product }: ProductDetailProps) {
-  return <ProductDetailClient store={store} product={product} />
+export default function ProductDetail({ store, product, initialVariantId }: ProductDetailProps) {
+  return (
+    <ProductDetailClient store={store} product={product} initialVariantId={initialVariantId} />
+  )
 }
