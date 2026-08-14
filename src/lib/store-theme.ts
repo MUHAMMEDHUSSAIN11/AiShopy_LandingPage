@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { isExtraDarkStoreBackground } from '@/lib/store-surface'
+import { isDarkStoreBackground } from '@/lib/store-surface'
 import type { StoreTemplateId, ThemeConfig } from '@/types/store'
 
 const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
@@ -33,7 +33,7 @@ export function getThemeStyle(themeConfig?: ThemeConfig | null): CSSProperties |
   if (!colors) return undefined
 
   const style: Record<string, string> = {}
-  const extraDark = isExtraDarkStoreBackground(colors.background)
+  const dark = isDarkStoreBackground(colors.background)
 
   if (colors.primary && HEX_COLOR_RE.test(colors.primary)) {
     const rgb = hexToRgbTriple(colors.primary)
@@ -41,11 +41,11 @@ export function getThemeStyle(themeConfig?: ThemeConfig | null): CSSProperties |
   }
 
   if (colors.background && HEX_COLOR_RE.test(colors.background)) {
-    // Upgrade the removed #111111 Dark surface to pure-black Extra Dark.
-    const rgb = extraDark ? '0 0 0' : hexToRgbTriple(colors.background)
+    // Upgrade the removed flat #111111 surface to pure-black glass Dark.
+    const rgb = dark ? '0 0 0' : hexToRgbTriple(colors.background)
     if (rgb) {
       style['--store-bg-rgb'] = rgb
-      if (extraDark) {
+      if (dark) {
         style['--store-bg-shell'] = '#000000'
       } else {
         style['--store-bg-shell'] = `color-mix(in srgb, rgb(${rgb}) 97%, #000000)`
@@ -58,7 +58,7 @@ export function getThemeStyle(themeConfig?: ThemeConfig | null): CSSProperties |
     if (rgb) style['--store-text-rgb'] = rgb
   }
 
-  if (extraDark) {
+  if (dark) {
     style['--store-muted-rgb'] = '161 161 170'
     style['--store-border-rgb'] = '63 63 70'
     style['--store-subtle-rgb'] = '39 39 42'
@@ -76,6 +76,6 @@ export function getTemplateId(themeConfig?: ThemeConfig | null): StoreTemplateId
   return t === 'boutique' || t === 'modern' ? t : 'classic'
 }
 
-export function getThemeSurface(themeConfig?: ThemeConfig | null): 'light' | 'extra-dark' {
-  return isExtraDarkStoreBackground(themeConfig?.colors?.background) ? 'extra-dark' : 'light'
+export function getThemeSurface(themeConfig?: ThemeConfig | null): 'light' | 'dark' {
+  return isDarkStoreBackground(themeConfig?.colors?.background) ? 'dark' : 'light'
 }

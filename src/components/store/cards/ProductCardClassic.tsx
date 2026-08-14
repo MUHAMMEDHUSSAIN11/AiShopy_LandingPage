@@ -13,7 +13,7 @@ type ProductCardClassicProps = {
   product: Product
 }
 
-/* Button icons render only under Extra Dark — `glass-only` keeps them hidden
+/* Button icons render only under Dark — `glass-only` keeps them hidden
    so Light stays visually identical. */
 function EyeIcon() {
   return (

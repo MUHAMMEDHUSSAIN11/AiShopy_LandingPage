@@ -70,7 +70,7 @@ export function getDemoProductBySlug(slug: string): Product | undefined {
 }
 
 export const LIGHT_COLORS = { primary: '#2DB84C', background: '#FFFFFF', text: '#1A1A1A' }
-export const EXTRA_DARK_COLORS = { primary: '#4ADE80', background: '#000000', text: '#FAFAFA' }
+export const DARK_COLORS = { primary: '#4ADE80', background: '#000000', text: '#FAFAFA' }
 
 export function themeFromPreviewQuery(
   template?: string | null,
@@ -80,9 +80,10 @@ export function themeFromPreviewQuery(
   const validTemplate =
     template === 'boutique' || template === 'modern' ? template : 'classic'
   const hex = primary && /^#[0-9A-Fa-f]{6}$/.test(primary) ? primary : LIGHT_COLORS.primary
+  // Accept legacy preview URLs that still send mode=extra-dark.
   const colors =
-    mode === 'extra-dark' || mode === 'dark'
-      ? { ...EXTRA_DARK_COLORS, primary: hex }
+    mode === 'dark' || mode === 'extra-dark'
+      ? { ...DARK_COLORS, primary: hex }
       : { ...LIGHT_COLORS, primary: hex }
   return { template: validTemplate, colors }
 }
