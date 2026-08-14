@@ -37,11 +37,6 @@
     --store-stock-low-rgb: 217 119 6;
   }
 
-  .store-theme[data-surface='dark'] {
-    --store-primary-soft: color-mix(in srgb, rgb(var(--store-primary-rgb)) 18%, rgb(var(--store-bg-rgb)));
-    --store-primary-muted: color-mix(in srgb, rgb(var(--store-primary-rgb)) 32%, rgb(var(--store-bg-rgb)));
-  }
-
   .store-theme[data-surface='extra-dark'] {
     --store-primary-soft: color-mix(in srgb, rgb(var(--store-primary-rgb)) 18%, rgb(var(--store-bg-rgb)));
     --store-primary-muted: color-mix(in srgb, rgb(var(--store-primary-rgb)) 32%, rgb(var(--store-bg-rgb)));
@@ -140,12 +135,6 @@
     color: rgb(var(--store-primary-rgb));
   }
 
-  .store-theme[data-surface='dark'] .checkout-panel input[type='text'],
-  .store-theme[data-surface='dark'] .checkout-panel input[type='tel'] {
-    background-color: rgb(var(--store-subtle-rgb));
-    color: rgb(var(--store-text-rgb));
-  }
-
   @keyframes store-fade-up {
     from {
       opacity: 0;
@@ -190,7 +179,7 @@
    to utilities like `bg-store-bg`.
 
    Every rule is scoped to [data-surface='extra-dark']. The .glass-* classes
-   are inert in Light and Dark: nothing styles them outside this block.
+   are inert in Light: nothing styles them outside this block.
    Deleting this block plus the class names restores the previous look.
    ============================================================================ */
 
@@ -443,8 +432,7 @@
 
 /*
  * Icons and the cart badge dot are rendered in markup for every theme but stay
- * hidden unless Extra Dark is active, so Light and Dark render identically to
- * before.
+ * hidden unless Extra Dark is active, so Light renders identically to before.
  */
 .glass-only {
   display: none;

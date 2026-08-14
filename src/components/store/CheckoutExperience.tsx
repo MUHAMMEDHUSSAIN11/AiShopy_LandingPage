@@ -20,7 +20,7 @@ import {
 } from '@/lib/razorpay'
 import { checkoutSchema, phoneSchema, type CheckoutFormData } from '@/lib/checkout-schema'
 import { formatPrice } from '@/lib/format'
-import { getTemplateId, getThemeStyle, isDarkTheme } from '@/lib/store-theme'
+import { getTemplateId, getThemeStyle, getThemeSurface } from '@/lib/store-theme'
 import type { OrderCreateResponse, ShippingAddress } from '@/types/customer'
 import { getEnabledPaymentMethods, getStoreUpiDetails, type Store } from '@/types/store'
 import type { StoreTemplateId } from '@/types/store'
@@ -434,7 +434,7 @@ export default function CheckoutExperience({
 
   const showInlineOrderSummary = layout !== 'boutique' && layout !== 'modern'
   const themeStyle = getThemeStyle(store.themeConfig)
-  const themeSurface = isDarkTheme(store.themeConfig) ? 'dark' : 'light'
+  const themeSurface = getThemeSurface(store.themeConfig)
   const themeTemplate = getTemplateId(store.themeConfig)
 
   return (

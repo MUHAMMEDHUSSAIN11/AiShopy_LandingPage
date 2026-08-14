@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { isDarkStoreBackground, isExtraDarkStoreBackground } from '@/lib/store-surface'
+import { isExtraDarkStoreBackground } from '@/lib/store-surface'
 import type { StoreTemplateId, ThemeConfig } from '@/types/store'
 
 const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
@@ -33,7 +33,6 @@ export function getThemeStyle(themeConfig?: ThemeConfig | null): CSSProperties |
   if (!colors) return undefined
 
   const style: Record<string, string> = {}
-  const dark = isDarkStoreBackground(colors.background)
   const extraDark = isExtraDarkStoreBackground(colors.background)
 
   if (colors.primary && HEX_COLOR_RE.test(colors.primary)) {
@@ -42,15 +41,14 @@ export function getThemeStyle(themeConfig?: ThemeConfig | null): CSSProperties |
   }
 
   if (colors.background && HEX_COLOR_RE.test(colors.background)) {
-    const rgb = hexToRgbTriple(colors.background)
+    // Upgrade the removed #111111 Dark surface to pure-black Extra Dark.
+    const rgb = extraDark ? '0 0 0' : hexToRgbTriple(colors.background)
     if (rgb) {
       style['--store-bg-rgb'] = rgb
       if (extraDark) {
         style['--store-bg-shell'] = '#000000'
       } else {
-        style['--store-bg-shell'] = dark
-          ? `color-mix(in srgb, rgb(${rgb}) 92%, #ffffff)`
-          : `color-mix(in srgb, rgb(${rgb}) 97%, #000000)`
+        style['--store-bg-shell'] = `color-mix(in srgb, rgb(${rgb}) 97%, #000000)`
       }
     }
   }
@@ -60,7 +58,7 @@ export function getThemeStyle(themeConfig?: ThemeConfig | null): CSSProperties |
     if (rgb) style['--store-text-rgb'] = rgb
   }
 
-  if (dark || extraDark) {
+  if (extraDark) {
     style['--store-muted-rgb'] = '161 161 170'
     style['--store-border-rgb'] = '63 63 70'
     style['--store-subtle-rgb'] = '39 39 42'
@@ -78,6 +76,6 @@ export function getTemplateId(themeConfig?: ThemeConfig | null): StoreTemplateId
   return t === 'boutique' || t === 'modern' ? t : 'classic'
 }
 
-export function isDarkTheme(themeConfig?: ThemeConfig | null): boolean {
-  return isDarkStoreBackground(themeConfig?.colors?.background)
+export function getThemeSurface(themeConfig?: ThemeConfig | null): 'light' | 'extra-dark' {
+  return isExtraDarkStoreBackground(themeConfig?.colors?.background) ? 'extra-dark' : 'light'
 }
