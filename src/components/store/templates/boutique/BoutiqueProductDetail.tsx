@@ -7,7 +7,11 @@ import { useProductDetail } from '@/hooks/use-product-detail'
 import { formatPrice } from '@/lib/format'
 import type { ProductTemplateProps } from '@/components/store/templates/types'
 
-export default function BoutiqueProductDetail({ store, product }: ProductTemplateProps) {
+export default function BoutiqueProductDetail({
+  store,
+  product,
+  initialVariantId,
+}: ProductTemplateProps) {
   const {
     optionGroups,
     selectedOptions,
@@ -24,7 +28,7 @@ export default function BoutiqueProductDetail({ store, product }: ProductTemplat
     handleOptionSelect,
     handleAddToCart,
     goToCart,
-  } = useProductDetail(store, product)
+  } = useProductDetail(store, product, initialVariantId)
 
   return (
     <div className="product-boutique min-h-screen bg-store-bg template-page-enter">

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useStoreHref } from '@/contexts/PreviewContext'
 import {
   buildCartLineFromProduct,
+  findVariantById,
   findVariantByOptions,
   formatSelectedOptionsLabel,
   getCompareAtPrice,
@@ -23,7 +24,11 @@ import { buildCartItemId } from '@/types/cart'
 import type { Product } from '@/types/product'
 import type { Store } from '@/types/store'
 
-export function useProductDetail(store: Store, product: Product) {
+export function useProductDetail(
+  store: Store,
+  product: Product,
+  initialVariantId?: string,
+) {
   const router = useRouter()
   const getHref = useStoreHref()
   const cartCount = useCartStore((state) =>
@@ -35,6 +40,10 @@ export function useProductDetail(store: Store, product: Product) {
   const optionGroups = useMemo(() => getVariantOptionGroups(product.variants), [product.variants])
 
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
+    if (initialVariantId) {
+      const variant = findVariantById(product, initialVariantId)
+      if (variant?.options) return variant.options
+    }
     const defaultVariant = getDefaultVariant(product)
     return defaultVariant?.options ?? {}
   })

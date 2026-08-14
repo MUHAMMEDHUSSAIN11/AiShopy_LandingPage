@@ -8,7 +8,11 @@ import { useProductDetail } from '@/hooks/use-product-detail'
 import { formatPrice } from '@/lib/format'
 import type { ProductTemplateProps } from '@/components/store/templates/types'
 
-export default function ModernProductDetail({ store, product }: ProductTemplateProps) {
+export default function ModernProductDetail({
+  store,
+  product,
+  initialVariantId,
+}: ProductTemplateProps) {
   const {
     cartCount,
     optionGroups,
@@ -27,7 +31,7 @@ export default function ModernProductDetail({ store, product }: ProductTemplateP
     handleAddToCart,
     goToCart,
     getHref,
-  } = useProductDetail(store, product)
+  } = useProductDetail(store, product, initialVariantId)
 
   const purchaseRow = !inStock ? (
     <button

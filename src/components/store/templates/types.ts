@@ -13,6 +13,7 @@ export type CatalogTemplateProps = {
 export type ProductTemplateProps = {
   store: Store
   product: Product
+  initialVariantId?: string
 }
 
 export type CartTemplateProps = {
