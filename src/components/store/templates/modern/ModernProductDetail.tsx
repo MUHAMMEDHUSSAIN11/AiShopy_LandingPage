@@ -90,7 +90,7 @@ export default function ModernProductDetail({
 
       <main className="mx-auto max-w-5xl px-4 py-6 pb-24 sm:py-8 lg:pb-8">
         <div className="grid gap-8 lg:grid-cols-5 lg:gap-10">
-          <div className="lg:col-span-2">
+          <div className="overflow-x-auto lg:col-span-2">
             <ProductCompactGallery images={images} alt={product.name} />
           </div>
 

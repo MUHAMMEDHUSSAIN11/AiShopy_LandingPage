@@ -33,11 +33,11 @@ function QuantityStepper({
   canIncrease: boolean
 }) {
   return (
-    <div className="flex items-center rounded-full border border-store-border bg-store-bg">
+    <div className="flex p-0.5 items-center rounded-full border border-store-border bg-store-bg">
       <button
         type="button"
         onClick={onDecrease}
-        className="px-3 py-1.5 text-lg font-medium text-store-text hover:bg-store-subtle"
+        className="px-3 py-1.5 text-lg font-medium text-store-text hover:bg-store-subtle hover:rounded-full"
         aria-label="Decrease quantity"
       >
         −
@@ -47,7 +47,7 @@ function QuantityStepper({
         type="button"
         onClick={onIncrease}
         disabled={!canIncrease}
-        className="px-3 py-1.5 text-lg font-medium text-store-text hover:bg-store-subtle disabled:cursor-not-allowed disabled:text-store-muted"
+        className="px-3 py-1.5 text-lg font-medium text-store-text hover:bg-store-subtle hover:rounded-full disabled:cursor-not-allowed disabled:text-store-muted"
         aria-label="Increase quantity"
       >
         +
@@ -163,7 +163,7 @@ export default function CartPageContent({
           ? 'sticky bottom-0 mt-6 border-t border-store-border bg-store-bg/95 p-4 backdrop-blur'
           : layout === 'boutique'
             ? 'mt-10 rounded-3xl border border-store-border bg-store-subtle p-6 shadow-inner sm:p-8'
-            : 'rounded-2xl border border-store-border bg-store-bg p-6 shadow-sm'
+            : 'mt-2 rounded-2xl border border-store-border bg-store-bg p-6 shadow-sm'
       }
     >
       <div className="flex items-center justify-between text-lg font-bold">
@@ -202,7 +202,7 @@ export default function CartPageContent({
     <main
       className={
         layout === 'boutique'
-          ? 'mx-auto max-w-lg px-4 py-8 sm:px-6 sm:py-10'
+          ? 'mx-auto max-w-lg px-4 py-6 sm:px-6 sm:py-10'
           : layout === 'modern'
             ? 'mx-auto max-w-2xl px-4 py-6 sm:px-6'
             : 'mx-auto max-w-3xl px-4 py-8 sm:px-6'

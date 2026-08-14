@@ -375,6 +375,55 @@
   color: rgb(var(--store-primary-rgb));
 }
 
+/* Back link label — the base component hardcodes text-gray-600, which is
+   unreadable on a near-black surface. */
+.store-theme[data-surface='extra-dark'] .glass-back {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.store-theme[data-surface='extra-dark'] .glass-back:hover {
+  color: rgb(var(--store-primary-rgb));
+}
+
+/* ——— Outlined accent button (Add to Cart / Go to Cart) ——— */
+.store-theme[data-surface='extra-dark'] .glass-btn-accent-soft {
+  background-color: rgba(var(--accent-rgb) / 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgb(var(--store-primary-rgb));
+}
+
+.store-theme[data-surface='extra-dark'] .glass-btn-accent-soft:hover:not(:disabled) {
+  background-color: rgba(var(--accent-rgb) / 0.2);
+  border-color: rgba(var(--accent-rgb) / 0.7);
+}
+
+/* ——— Variant option chips ——— */
+.store-theme[data-surface='extra-dark'] .glass-chip {
+  background-color: var(--glass-bg-quiet);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: var(--glass-border);
+  color: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--glass-lift);
+}
+
+.store-theme[data-surface='extra-dark'] .glass-chip:hover {
+  background-color: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* Selected chip keeps the accent identity but as tinted glass rather than a
+   solid fill, so it sits in the same material system as the cards. */
+.store-theme[data-surface='extra-dark'] .glass-chip-active,
+.store-theme[data-surface='extra-dark'] .glass-chip-active:hover {
+  background-color: rgba(var(--accent-rgb) / 0.16);
+  border-color: rgba(var(--accent-rgb) / 0.6);
+  color: rgb(var(--store-primary-rgb));
+  box-shadow: var(--glass-lift), 0 0 18px rgba(var(--accent-rgb) / 0.22);
+}
+
 /* ——— Panels reused across cart / checkout / product detail ——— */
 .store-theme[data-surface='extra-dark'] .checkout-panel {
   background-color: var(--glass-bg);
