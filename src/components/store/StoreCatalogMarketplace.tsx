@@ -98,18 +98,6 @@ export default function StoreCatalogMarketplace({
       />
 
       <div className="mx-auto flex max-w-7xl">
-        <aside className="catalog-marketplace-sidebar hidden w-60 shrink-0 border-r border-store-border bg-store-bg lg:block">
-          <div className="sticky top-[57px] max-h-[calc(100vh-57px)] overflow-y-auto">
-            <p className="border-b border-store-border px-4 py-3 text-xs font-bold uppercase tracking-wider text-store-muted">
-              Shop by category
-            </p>
-            <MarketplaceCategoryNav
-              categories={sidebarCategories}
-              activeCategoryId={activeCategoryId}
-              onCategoryChange={handleCategoryChange}
-            />
-          </div>
-        </aside>
 
         <div className="min-w-0 flex-1 px-4 py-5 sm:px-6">
           <div className="flex flex-wrap items-center gap-3">
