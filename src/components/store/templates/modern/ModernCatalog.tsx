@@ -12,7 +12,7 @@ import type { CatalogTemplateProps } from '@/components/store/templates/types'
 import { useStoreHref } from '@/contexts/PreviewContext'
 import { useCartReconcile } from '@/hooks/use-cart-reconcile'
 import { useCartStore } from '@/stores/cart-store'
-import { flattenCategories, type Category } from '@/types/category'
+import { flattenCategories, filterProductsByCategorySubtree, type Category } from '@/types/category'
 import type { Product } from '@/types/product'
 
 const ALL_CATEGORY: Category = { id: '', name: 'All' }
@@ -50,9 +50,7 @@ export default function ModernCatalog({
       startTransition(async () => {
         if (previewMode) {
           setProducts(
-            categoryId
-              ? initialProducts.filter((p) => p.categoryId === categoryId)
-              : initialProducts,
+            filterProductsByCategorySubtree(initialProducts, categories, categoryId),
           )
           return
         }
@@ -64,7 +62,7 @@ export default function ModernCatalog({
         setProducts(catalog.products)
       })
     },
-    [previewMode, initialProducts, storeSlug],
+    [previewMode, initialProducts, storeSlug, categories],
   )
 
   const filteredProducts = useMemo(() => {
