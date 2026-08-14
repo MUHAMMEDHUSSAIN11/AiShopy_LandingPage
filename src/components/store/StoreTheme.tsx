@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { StoreTemplateProvider } from '@/contexts/StoreTemplateContext'
-import { getTemplateId, getThemeStyle, isDarkTheme } from '@/lib/store-theme'
+import { getTemplateId, getThemeStyle, getThemeSurface } from '@/lib/store-theme'
 import type { ThemeConfig } from '@/types/store'
 
 type StoreThemeProps = {
@@ -15,7 +15,7 @@ type StoreThemeProps = {
  */
 export default function StoreTheme({ themeConfig, children }: StoreThemeProps) {
   const template = getTemplateId(themeConfig)
-  const surface = isDarkTheme(themeConfig) ? 'dark' : 'light'
+  const surface = getThemeSurface(themeConfig)
 
   return (
     <div

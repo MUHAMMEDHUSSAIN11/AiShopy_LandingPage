@@ -41,12 +41,15 @@ export function getThemeStyle(themeConfig?: ThemeConfig | null): CSSProperties |
   }
 
   if (colors.background && HEX_COLOR_RE.test(colors.background)) {
-    const rgb = hexToRgbTriple(colors.background)
+    // Upgrade the removed flat #111111 surface to pure-black glass Dark.
+    const rgb = dark ? '0 0 0' : hexToRgbTriple(colors.background)
     if (rgb) {
       style['--store-bg-rgb'] = rgb
-      style['--store-bg-shell'] = dark
-        ? `color-mix(in srgb, rgb(${rgb}) 92%, #ffffff)`
-        : `color-mix(in srgb, rgb(${rgb}) 97%, #000000)`
+      if (dark) {
+        style['--store-bg-shell'] = '#000000'
+      } else {
+        style['--store-bg-shell'] = `color-mix(in srgb, rgb(${rgb}) 97%, #000000)`
+      }
     }
   }
 
@@ -73,6 +76,6 @@ export function getTemplateId(themeConfig?: ThemeConfig | null): StoreTemplateId
   return t === 'boutique' || t === 'modern' ? t : 'classic'
 }
 
-export function isDarkTheme(themeConfig?: ThemeConfig | null): boolean {
-  return isDarkStoreBackground(themeConfig?.colors?.background)
+export function getThemeSurface(themeConfig?: ThemeConfig | null): 'light' | 'dark' {
+  return isDarkStoreBackground(themeConfig?.colors?.background) ? 'dark' : 'light'
 }

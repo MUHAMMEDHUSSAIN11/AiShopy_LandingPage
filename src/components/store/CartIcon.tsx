@@ -16,7 +16,7 @@ export default function CartIcon({
       type="button"
       onClick={onClick}
       aria-label={`Shopping cart${count > 0 ? `, ${count} items` : ''}`}
-      className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-700 transition hover:bg-gray-100 hover:text-store-primary ${className ?? ''}`}
+      className={`glass-icon-btn relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-700 transition hover:bg-gray-100 hover:text-store-primary ${className ?? ''}`}
     >
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
         <path
@@ -26,11 +26,14 @@ export default function CartIcon({
         />
       </svg>
       {count > 0 && (
-        <span
-          className={`absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ${badgeRingClassName}`}
-        >
-          {count > 99 ? '99+' : count}
-        </span>
+        <>
+          <span
+            className={`glass-hide absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ${badgeRingClassName}`}
+          >
+            {count > 99 ? '99+' : count}
+          </span>
+          <span className="glass-only glass-cart-dot absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full bg-store-primary" />
+        </>
       )}
     </button>
   )

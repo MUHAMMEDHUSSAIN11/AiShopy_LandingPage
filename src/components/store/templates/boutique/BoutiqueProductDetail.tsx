@@ -82,10 +82,10 @@ export default function BoutiqueProductDetail({
                             key={value}
                             type="button"
                             onClick={() => handleOptionSelect(group.key, value)}
-                            className={`rounded-full border px-4 py-2 text-sm font-medium ${
+                            className={`rounded-full border border-store-border px-4 py-2 text-sm font-medium ${
                               isSelected
-                                ? 'border-store-text bg-store-text text-white'
-                                : 'border-store-border bg-store-bg text-store-text'
+                                ? 'bg-store-primary text-white'
+                                : 'bg-store-bg text-store-text'
                             }`}
                           >
                             {value}

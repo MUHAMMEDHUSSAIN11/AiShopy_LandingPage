@@ -26,7 +26,7 @@ export default function ProductSearchBar({ value, onChange }: ProductSearchBarPr
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search products..."
-        className="w-full rounded-xl border border-gray-200 bg-store-bg py-2.5 pl-11 pr-4 text-sm text-store-text outline-none transition placeholder:text-gray-400 focus:border-store-primary focus:ring-2 focus:ring-store-primary/20"
+        className="glass-input w-full rounded-xl border border-gray-200 bg-store-bg py-2.5 pl-11 pr-4 text-sm text-store-text outline-none transition placeholder:text-gray-400 focus:border-store-primary focus:ring-2 focus:ring-store-primary/20"
       />
     </div>
   )

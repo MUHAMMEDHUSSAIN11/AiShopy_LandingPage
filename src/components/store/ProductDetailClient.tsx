@@ -45,7 +45,7 @@ export default function ProductDetailClient({
     <button
       type="button"
       disabled
-      className={`w-full cursor-not-allowed rounded-full px-6 py-3 text-sm font-semibold sm:py-4 sm:text-base ${
+      className={`glass-btn w-full cursor-not-allowed rounded-full px-6 py-3 text-sm font-semibold sm:py-4 sm:text-base ${
         soldOut
           ? 'bg-store-stock-out/10 text-store-stock-out'
           : 'bg-store-subtle text-store-muted'
@@ -59,7 +59,7 @@ export default function ProductDetailClient({
         <button
           type="button"
           onClick={goToCart}
-          className="inline-flex flex-1 items-center justify-center rounded-full border border-store-primary bg-store-primary-soft px-6 py-3 text-sm font-semibold text-store-primary sm:py-4 sm:text-base"
+          className="glass-btn-accent glass-btn-accent-soft inline-flex flex-1 items-center justify-center rounded-full border border-store-primary bg-store-primary-soft px-6 py-3 text-sm font-semibold text-store-primary sm:py-4 sm:text-base"
         >
           Go to Cart
         </button>
@@ -68,7 +68,7 @@ export default function ProductDetailClient({
           type="button"
           disabled={isAdding}
           onClick={() => handleAddToCart(false)}
-          className="inline-flex flex-1 items-center justify-center rounded-full border border-store-primary px-6 py-3 text-sm font-semibold text-store-primary transition hover:bg-store-primary-soft disabled:opacity-60 sm:py-4 sm:text-base"
+          className="glass-btn-accent glass-btn-accent-soft inline-flex flex-1 items-center justify-center rounded-full border border-store-primary px-6 py-3 text-sm font-semibold text-store-primary transition hover:bg-store-primary-soft disabled:opacity-60 sm:py-4 sm:text-base"
         >
           Add to Cart
         </button>
@@ -77,7 +77,7 @@ export default function ProductDetailClient({
         type="button"
         disabled={isAdding}
         onClick={() => handleAddToCart(true)}
-        className="inline-flex flex-1 items-center justify-center rounded-full bg-store-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-store-primary-hover disabled:opacity-60 sm:py-4 sm:text-base"
+        className="glass-btn-accent inline-flex flex-1 items-center justify-center rounded-full bg-store-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-store-primary-hover disabled:opacity-60 sm:py-4 sm:text-base"
       >
         Buy Now
       </button>
@@ -86,7 +86,7 @@ export default function ProductDetailClient({
 
   return (
     <div className="min-h-screen bg-store-bg-shell template-page-enter">
-      <header className="border-b border-store-border bg-store-bg">
+      <header className="glass-nav border-b border-store-border bg-store-bg">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <BackLink href={getHref('/')} label={`Back to ${store.name}`} />
           <CartIcon count={cartCount} onClick={goToCart} />
@@ -128,9 +128,9 @@ export default function ProductDetailClient({
                             key={value}
                             type="button"
                             onClick={() => handleOptionSelect(group.key, value)}
-                            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                            className={`glass-chip rounded-full border px-4 py-2 text-sm font-medium transition ${
                               isSelected
-                                ? 'border-store-primary bg-store-primary text-white'
+                                ? 'glass-chip-active border-store-primary bg-store-primary text-white'
                                 : 'border-store-border bg-store-bg text-store-text hover:border-store-primary'
                             }`}
                           >

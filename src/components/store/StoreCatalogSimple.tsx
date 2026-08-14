@@ -95,7 +95,7 @@ export default function StoreCatalogSimple({
       />
 
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6">
-        <div className="rounded-xl border border-store-border bg-store-bg p-3 shadow-sm sm:p-4">
+        <div className="glass-panel rounded-xl border border-store-border bg-store-bg p-3 shadow-sm sm:p-4">
           <div className="flex flex-wrap items-center gap-3">
             <CategoryToggler open={sidebarOpen} onClick={() => setSidebarOpen((o) => !o)} />
             <div className="min-w-0 flex-1">

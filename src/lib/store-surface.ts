@@ -1,9 +1,9 @@
-/** Detect light vs dark storefront from configured background hex. */
+const DARK_BACKGROUND = '#000000'
+/** Old flat dark surface — treated as Dark for stores saved before glass Dark. */
+const LEGACY_FLAT_DARK_BACKGROUND = '#111111'
+
+/** Detect Dark storefront background, including the removed flat #111111 surface. */
 export function isDarkStoreBackground(hex?: string | null): boolean {
-  if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return false
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  return luminance < 0.45
+  const normalized = hex?.toUpperCase()
+  return normalized === DARK_BACKGROUND || normalized === LEGACY_FLAT_DARK_BACKGROUND
 }

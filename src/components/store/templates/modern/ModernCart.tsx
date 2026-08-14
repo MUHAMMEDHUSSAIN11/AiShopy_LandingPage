@@ -60,7 +60,7 @@ export default function ModernCart({ store }: CartTemplateProps) {
                   key={item.id}
                   className="rounded-md border border-store-border bg-store-bg p-3 sm:grid sm:grid-cols-[1fr_100px_120px_80px] sm:items-center sm:gap-2 sm:border-0 sm:border-b sm:p-4 sm:pb-4"
                 >
-                  <div className="flex gap-3 sm:contents">
+                  <div className="flex gap-3 ">
                     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-store-subtle sm:row-span-1">
                       {item.imageUrl ? (
                         <Image src={item.imageUrl} alt={item.name} fill className="object-cover" sizes="56px" />
