@@ -30,7 +30,7 @@ export default function ProductCardBoutique({ storeSlug, product }: ProductCardB
   } = useProductCard(storeSlug, product)
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl bg-store-bg shadow-md ring-1 ring-store-border/60 transition duration-500 hover:shadow-xl sm:rounded-3xl">
+    <article className="glass-card group flex flex-col overflow-hidden rounded-2xl bg-store-bg shadow-md ring-1 ring-store-border/60 transition duration-500 hover:shadow-xl sm:rounded-3xl">
       <Link
         href={getHref(`/product/${product.slug}`)}
         className="relative aspect-square overflow-hidden bg-store-subtle sm:aspect-[4/5]"

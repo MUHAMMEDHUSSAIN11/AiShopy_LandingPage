@@ -10,7 +10,7 @@ export default function CategoryToggler({ open, onClick }: CategoryTogglerProps)
       onClick={onClick}
       aria-label={open ? 'Close categories' : 'Open categories'}
       aria-expanded={open}
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-store-bg shadow-sm transition active:scale-95 ${
+      className={`glass-icon-btn flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-store-bg shadow-sm transition active:scale-95 ${
         open
           ? 'border-store-primary bg-store-primary-soft text-store-primary'
           : 'border-gray-200 text-gray-600 hover:border-store-primary/40 hover:bg-store-primary-soft hover:text-store-primary'

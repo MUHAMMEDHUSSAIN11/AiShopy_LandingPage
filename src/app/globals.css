@@ -42,6 +42,11 @@
     --store-primary-muted: color-mix(in srgb, rgb(var(--store-primary-rgb)) 32%, rgb(var(--store-bg-rgb)));
   }
 
+  .store-theme[data-surface='extra-dark'] {
+    --store-primary-soft: color-mix(in srgb, rgb(var(--store-primary-rgb)) 18%, rgb(var(--store-bg-rgb)));
+    --store-primary-muted: color-mix(in srgb, rgb(var(--store-primary-rgb)) 32%, rgb(var(--store-bg-rgb)));
+  }
+
   .store-theme[data-template='boutique'] .template-page-enter {
     animation: store-fade-up 0.45s ease-out both;
   }
@@ -173,5 +178,243 @@
 @layer utilities {
   .text-gradient {
     @apply bg-gradient-to-r from-brand-green to-emerald-600 bg-clip-text text-transparent;
+  }
+}
+
+/* ============================================================================
+   EXTRA DARK — GLASSMORPHISM SYSTEM
+   ----------------------------------------------------------------------------
+   Deliberately unlayered. Tailwind's utilities are emitted unlayered, and an
+   unlayered normal declaration always beats a layered one regardless of
+   specificity — rules for this theme placed inside @layer base silently lose
+   to utilities like `bg-store-bg`.
+
+   Every rule is scoped to [data-surface='extra-dark']. The .glass-* classes
+   are inert in Light and Dark: nothing styles them outside this block.
+   Deleting this block plus the class names restores the previous look.
+   ============================================================================ */
+
+.store-theme[data-surface='extra-dark'] {
+  --glass-bg: rgba(255, 255, 255, 0.07);
+  --glass-bg-hover: rgba(255, 255, 255, 0.095);
+  --glass-bg-quiet: rgba(255, 255, 255, 0.045);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.14);
+  --glass-blur: 18px;
+  --glass-radius: 18px;
+  --glass-lift: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --glass-shadow-hover: 0 14px 44px rgba(0, 0, 0, 0.55);
+  --accent-rgb: var(--store-primary-rgb);
+
+  position: relative;
+  isolation: isolate;
+  background-color: #000000;
+}
+
+/*
+ * Ambient light. backdrop-filter can only blur what is painted behind it, so a
+ * flat #000 page makes any amount of blur invisible. This fixed layer gives the
+ * glass real content to sample while staying visually understated.
+ */
+.store-theme[data-surface='extra-dark']::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 28rem at 50% -8%, rgba(var(--accent-rgb) / 0.1), transparent 70%),
+    radial-gradient(36rem 22rem at 10% 6%, rgba(255, 255, 255, 0.05), transparent 70%),
+    radial-gradient(44rem 26rem at 90% 94%, rgba(var(--accent-rgb) / 0.05), transparent 70%);
+}
+
+/*
+ * The page shells paint an opaque --store-bg-shell (#000 in this theme) over
+ * the ambient layer above. Clearing it is what actually makes the blur visible.
+ */
+.store-theme[data-surface='extra-dark'] .bg-store-bg-shell {
+  background-color: transparent;
+}
+
+/* ——— Floating navbar ——— */
+.store-theme[data-surface='extra-dark'] .glass-nav {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-lift);
+}
+
+/* ——— Search / filter panel ——— */
+.store-theme[data-surface='extra-dark'] .glass-panel {
+  position: relative;
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow), var(--glass-lift);
+}
+
+/* Soft light source above the panel, matching the reference glow beam. */
+.store-theme[data-surface='extra-dark'] .glass-panel::before {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: -2.5rem;
+  height: 5rem;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(var(--accent-rgb) / 0.16),
+    rgba(var(--accent-rgb) / 0.05) 45%,
+    transparent 72%
+  );
+  filter: blur(26px);
+}
+
+/* ——— Search input ——— */
+.store-theme[data-surface='extra-dark'] .glass-input {
+  background-color: var(--glass-bg-quiet);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  color: rgb(var(--store-text-rgb));
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35), var(--glass-lift);
+}
+
+.store-theme[data-surface='extra-dark'] .glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.store-theme[data-surface='extra-dark'] .glass-input:focus {
+  background-color: var(--glass-bg);
+  border-color: rgba(var(--accent-rgb) / 0.45);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.35),
+    0 0 0 3px rgba(var(--accent-rgb) / 0.12),
+    0 0 22px rgba(var(--accent-rgb) / 0.18);
+}
+
+/* ——— Product cards ——— */
+.store-theme[data-surface='extra-dark'] .glass-card {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow), var(--glass-lift);
+}
+
+/*
+ * The per-template rules in @layer base set article border-radius at
+ * specificity (0,4,1). Tailwind v3 flattens @layer into plain CSS, so those
+ * rules are not outranked by .glass-card on its own — this override is
+ * deliberately more specific rather than reaching for !important.
+ */
+.store-theme[data-surface='extra-dark'][data-template] .template-catalog-item article.glass-card {
+  border-radius: var(--glass-radius);
+}
+
+.store-theme[data-surface='extra-dark'] .glass-card:hover {
+  background-color: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-hover), var(--glass-lift);
+}
+
+/* ——— Buttons ——— */
+.store-theme[data-surface='extra-dark'] .glass-btn {
+  background-color: var(--glass-bg-quiet);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  color: rgb(var(--store-text-rgb));
+  box-shadow: var(--glass-lift);
+}
+
+.store-theme[data-surface='extra-dark'] .glass-btn:hover {
+  background-color: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  color: rgb(var(--store-text-rgb));
+}
+
+.store-theme[data-surface='extra-dark'] .glass-btn-accent {
+  border-radius: 999px;
+  border: 1px solid rgba(var(--accent-rgb) / 0.55);
+  box-shadow: var(--glass-lift), 0 4px 18px rgba(var(--accent-rgb) / 0.22);
+}
+
+.store-theme[data-surface='extra-dark'] .glass-btn-accent:hover:not(:disabled) {
+  box-shadow: var(--glass-lift), 0 6px 26px rgba(var(--accent-rgb) / 0.35);
+}
+
+.store-theme[data-surface='extra-dark'] .glass-btn-accent:disabled {
+  border-color: var(--glass-border);
+  box-shadow: none;
+}
+
+/* ——— Circular icon button (category toggle, cart) ——— */
+.store-theme[data-surface='extra-dark'] .glass-icon-btn {
+  background-color: var(--glass-bg-quiet);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  color: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--glass-lift);
+}
+
+.store-theme[data-surface='extra-dark'] .glass-icon-btn:hover {
+  background-color: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  color: rgb(var(--store-primary-rgb));
+}
+
+/* ——— Panels reused across cart / checkout / product detail ——— */
+.store-theme[data-surface='extra-dark'] .checkout-panel {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow), var(--glass-lift);
+}
+
+.store-theme[data-surface='extra-dark'] .checkout-panel input[type='text'],
+.store-theme[data-surface='extra-dark'] .checkout-panel input[type='tel'] {
+  background-color: var(--glass-bg-quiet);
+  border-color: var(--glass-border);
+  color: rgb(var(--store-text-rgb));
+}
+
+/*
+ * Icons and the cart badge dot are rendered in markup for every theme but stay
+ * hidden unless Extra Dark is active, so Light and Dark render identically to
+ * before.
+ */
+.glass-only {
+  display: none;
+}
+
+.store-theme[data-surface='extra-dark'] .glass-only {
+  display: inline-flex;
+}
+
+.store-theme[data-surface='extra-dark'] .glass-hide {
+  display: none;
+}
+
+.store-theme[data-surface='extra-dark'] .glass-cart-dot {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6), 0 0 10px rgba(var(--accent-rgb) / 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .store-theme[data-surface='extra-dark'] .glass-card {
+    transition: none;
   }
 }

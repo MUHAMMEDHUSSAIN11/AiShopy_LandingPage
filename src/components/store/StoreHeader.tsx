@@ -20,7 +20,7 @@ export default function StoreHeader({ store }: StoreHeaderProps) {
   )
 
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-100 bg-store-bg/95 backdrop-blur-sm">
+    <header className="glass-nav sticky top-0 z-40 border-b border-gray-100 bg-store-bg/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link href={getHref('/')} className="flex min-w-0 items-center gap-3">
           {store.logoUrl ? (
