@@ -7,6 +7,9 @@ if (-not (Test-Path $sourcePath)) {
   throw "Missing source icon at $sourcePath"
 }
 
+# Zoom in slightly to trim outer green padding so the cart matches the mobile app icon.
+$IconZoom = 1.24
+
 function New-Graphics([System.Drawing.Bitmap]$Bitmap) {
   $g = [System.Drawing.Graphics]::FromImage($Bitmap)
   $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
@@ -38,7 +41,10 @@ function New-RoundedIconBitmap {
   $path.AddArc(0, $renderSize - $diameter, $diameter, $diameter, 90, 90)
   $path.CloseFigure()
   $renderG.SetClip($path)
-  $renderG.DrawImage($Source, 0, 0, $renderSize, $renderSize)
+
+  $drawSize = [int][Math]::Round($renderSize * $IconZoom)
+  $offset = [int][Math]::Round(($renderSize - $drawSize) / 2)
+  $renderG.DrawImage($Source, $offset, $offset, $drawSize, $drawSize)
   $renderG.Dispose()
 
   $finalBmp = New-Object System.Drawing.Bitmap $Size, $Size,
