@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from 'framer-motion'
 import WaitlistForm from '@/components/WaitlistForm'
+import AppStoreBadges from '@/components/AppStoreBadges'
 import FadeIn from '@/components/motion/FadeIn'
 import StoreUrlHighlight from '@/components/StoreUrlHighlight'
 import { smoothEase } from '@/lib/motion'
@@ -23,9 +24,9 @@ export default function Hero() {
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
 
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div className="text-center lg:text-left">
+          <div className="min-w-0 text-center lg:text-left">
             <FadeIn direction="down" view={false} delay={0.1}>
               <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-sm font-medium text-brand-green">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-brand-green" />
@@ -34,7 +35,7 @@ export default function Hero() {
             </FadeIn>
 
             <FadeIn direction="up" view={false} delay={0.2}>
-              <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl lg:text-6xl">
+              <h1 className="text-balance break-words text-4xl font-extrabold leading-tight tracking-tight md:text-5xl lg:text-6xl">
                 Turn WhatsApp &amp; Instagram{' '}
                 <span className="text-gradient">Chats Into Sales</span>
               </h1>
@@ -54,6 +55,9 @@ export default function Hero() {
               </p>
               <div className="mt-5 flex justify-center lg:justify-start">
                 <StoreUrlHighlight size="lg" />
+              </div>
+              <div className="mt-6 flex justify-center lg:hidden">
+                <AppStoreBadges size="sm" />
               </div>
             </FadeIn>
 
@@ -90,7 +94,7 @@ export default function Hero() {
             </FadeIn>
           </div>
 
-          <FadeIn direction="right" view={false} delay={0.5} className="lg:pl-4">
+          <FadeIn direction="right" view={false} delay={0.5} className="min-w-0 lg:pl-4">
             <div id="get-started">
               <WaitlistForm />
             </div>

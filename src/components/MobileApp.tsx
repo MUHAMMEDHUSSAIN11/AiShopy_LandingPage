@@ -1,16 +1,17 @@
 'use client'
 
 import FadeIn from '@/components/motion/FadeIn'
+import AppStoreBadges from '@/components/AppStoreBadges'
 import { StaggerChildren, StaggerItem } from '@/components/motion/StaggerChildren'
 import { mobileAppFeatures } from '@/lib/data'
 
 export default function MobileApp() {
   return (
-    <section className="py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-6">
+    <section id="mobile-app" className="overflow-hidden py-20 md:py-28">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <FadeIn direction="left">
-            <div className="relative mx-auto w-64 lg:mx-0">
+            <div className="relative mx-auto w-64 max-w-full lg:mx-0">
               <div className="rounded-[2.5rem] border-4 border-gray-800 bg-gray-800 p-2 shadow-2xl">
                 <div className="overflow-hidden rounded-[2rem] bg-white">
                   <div className="bg-brand-green px-4 py-5 text-white">
@@ -42,7 +43,7 @@ export default function MobileApp() {
                   </div>
                 </div>
               </div>
-              <div className="absolute -right-4 -top-4 rounded-full bg-brand-green px-3 py-1 text-xs font-bold text-white shadow-lg">
+              <div className="absolute right-2 top-2 rounded-full bg-brand-green px-3 py-1 text-xs font-bold text-white shadow-lg">
                 Mobile App
               </div>
             </div>
@@ -74,6 +75,8 @@ export default function MobileApp() {
                   </StaggerItem>
                 ))}
               </StaggerChildren>
+
+              <AppStoreBadges className="mt-8" />
             </div>
           </FadeIn>
         </div>

@@ -157,10 +157,12 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
   }
 
   body {
     @apply bg-white text-brand-dark antialiased;
+    overflow-x: clip;
   }
 }
 

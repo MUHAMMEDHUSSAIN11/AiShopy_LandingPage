@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import FadeIn from '@/components/motion/FadeIn'
+import AppStoreBadges from '@/components/AppStoreBadges'
 import { COMPANY_NAME, CONTACT_EMAIL } from '@/lib/constants'
 
 export default function Footer() {
@@ -16,6 +17,7 @@ export default function Footer() {
               <span className="text-sm text-gray-500">Turn chats into sales with AI.</span>
             </div>
             <div className="flex flex-col items-center gap-3 md:items-end">
+              <AppStoreBadges size="sm" />
               <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
                 <Link href="/privacy" className="text-gray-500 transition hover:text-brand-green">
                   Privacy policy

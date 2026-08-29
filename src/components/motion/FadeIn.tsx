@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   defaultTransition,
@@ -39,6 +40,18 @@ export default function FadeIn({
   className,
 }: FadeInProps) {
   const reduceMotion = useReducedMotion()
+  const [isMdUp, setIsMdUp] = useState(true)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)')
+    const update = () => setIsMdUp(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  const resolvedDirection =
+    !isMdUp && (direction === 'left' || direction === 'right') ? 'up' : direction
 
   if (reduceMotion) {
     return <div className={className}>{children}</div>
@@ -57,7 +70,7 @@ export default function FadeIn({
       {...(view
         ? { whileInView: 'visible', viewport }
         : { animate: 'visible' })}
-      variants={variantMap[direction]}
+      variants={variantMap[resolvedDirection]}
       transition={transition}
     >
       {children}

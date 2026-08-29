@@ -19,12 +19,12 @@ export const fadeDown: Variants = {
 }
 
 export const fadeLeft: Variants = {
-  hidden: { opacity: 0, x: -56 },
+  hidden: { opacity: 0, x: -16 },
   visible: { opacity: 1, x: 0 },
 }
 
 export const fadeRight: Variants = {
-  hidden: { opacity: 0, x: 56 },
+  hidden: { opacity: 0, x: 16 },
   visible: { opacity: 1, x: 0 },
 }
 
