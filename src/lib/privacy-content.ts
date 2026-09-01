@@ -203,7 +203,7 @@ export const privacyContent: LegalDocumentContent = {
       paragraphs: [
         'Depending on your location, you may have the right to:',
         `Merchants: To exercise these rights, contact us at ${CONTACT_EMAIL}. We will respond within a reasonable time and as required by law.`,
-        'Delete your account in the app: open Settings → Delete account to permanently remove your account and any stores you own. This is immediate and does not require contacting support.',
+        'Delete your account in the app: open Settings → Admin Dashboard → Delete account to permanently remove your account and any stores you own. This is immediate and does not require contacting support.',
         'Disconnect WhatsApp: You can disconnect WhatsApp from the Business app or our connection flow where available; contact us if you need help removing stored connection data.',
         'End customers: Please contact the merchant you interacted with first; they control the business relationship. We can assist merchants with data requests related to data we process on their behalf.',
       ],
