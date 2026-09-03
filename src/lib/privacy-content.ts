@@ -4,7 +4,7 @@ import { CONTACT_EMAIL, COMPANY_NAME } from '@/lib/constants'
 export const privacyContent: LegalDocumentContent = {
   title: 'Privacy Policy',
   subtitle: 'How AiShopy handles your information',
-  lastUpdated: 'September 1, 2026',
+  lastUpdated: 'September 3, 2026',
   summary:
     'AiShopy helps merchants run a store and WhatsApp inbox. We collect account, store, product, order, and WhatsApp message data to provide the app. We use providers like Meta (WhatsApp), Supabase, and cloud hosting. Chat Boat uses third-party AI (OpenAI and/or TokenBee) only with your consent. We do not sell your data. You can delete your account in the app or contact aishopyapp@gmail.com.',
   sections: [
@@ -92,8 +92,8 @@ export const privacyContent: LegalDocumentContent = {
         {
           title: '3.7 Chat Boat (third-party AI)',
           paragraphs: [
-            'If you enable Chat Boat auto-reply, we may send the following to third-party AI providers (such as OpenAI and/or TokenBee) to generate replies:',
-            'We ask for your explicit consent in the app before enabling Chat Boat. You can disable Chat Boat or switch any conversation to manual reply at any time.',
+            'If you enable Chat Boat auto-reply, we may send the following to third-party AI providers (OpenAI gpt-4o-mini and/or TokenBee) to generate replies:',
+            'We ask for your explicit consent in the app before enabling Chat Boat. You can disable Chat Boat or switch any conversation to manual reply at any time. We use OpenAI&apos;s API, which does not use your data to train their models by default.',
           ],
           bullets: [
             'Customer messages and conversation history from connected WhatsApp or Instagram inboxes',
@@ -145,7 +145,7 @@ export const privacyContent: LegalDocumentContent = {
             'Cloud hosting (e.g. Railway) — to run our application servers',
             'Database and authentication (e.g. Supabase) — to store data and manage sign-in',
             'Storage — for product images and uploaded files',
-            'Third-party AI (e.g. OpenAI, TokenBee) — when you enable Chat Boat, to generate automated customer replies from your inbox and catalog data',
+            'Third-party AI (OpenAI gpt-4o-mini, TokenBee) — when you enable Chat Boat, to generate automated customer replies from your inbox and catalog data',
           ],
         },
         {
@@ -203,7 +203,7 @@ export const privacyContent: LegalDocumentContent = {
       paragraphs: [
         'Depending on your location, you may have the right to:',
         `Merchants: To exercise these rights, contact us at ${CONTACT_EMAIL}. We will respond within a reasonable time and as required by law.`,
-        'Delete your account in the app: open Settings → Admin Dashboard → Delete account to permanently remove your account and any stores you own. This is immediate and does not require contacting support.',
+        'Delete your account in the app: open Settings → Delete account to permanently remove your account and any stores you own. This is immediate and does not require contacting support.',
         'Disconnect WhatsApp: You can disconnect WhatsApp from the Business app or our connection flow where available; contact us if you need help removing stored connection data.',
         'End customers: Please contact the merchant you interacted with first; they control the business relationship. We can assist merchants with data requests related to data we process on their behalf.',
       ],
