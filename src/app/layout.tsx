@@ -7,6 +7,32 @@ export const metadata: Metadata = {
   title: 'AiShopy — Turn WhatsApp & Instagram Chats Into Sales',
   description:
     'AiShopy helps businesses sell products through WhatsApp and Instagram with an AI-powered sales assistant, online storefront, and order tracking.',
+  verification: {
+    google: 'gT7Fg0BYnmbTDh9s79HjVn_LkdEx3mRiWkLsCZJGeUM',
+  },
+  openGraph: {
+    type: 'website',
+    url: 'https://www.aishopy.io',
+    siteName: 'AiShopy',
+    title: 'AiShopy — Turn WhatsApp & Instagram Chats Into Sales',
+    description:
+      'AiShopy helps businesses sell products through WhatsApp and Instagram with an AI-powered sales assistant, online storefront, and order tracking.',
+    images: [
+      {
+        url: '/app-icon.png',
+        width: 512,
+        height: 512,
+        alt: 'AiShopy',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'AiShopy — Turn WhatsApp & Instagram Chats Into Sales',
+    description:
+      'AiShopy helps businesses sell products through WhatsApp and Instagram with an AI-powered sales assistant, online storefront, and order tracking.',
+    images: ['/app-icon.png'],
+  },
   manifest: '/site.webmanifest',
   icons: {
     icon: [
