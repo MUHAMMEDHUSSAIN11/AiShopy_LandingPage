@@ -27,7 +27,7 @@ export const pricingPlans: PricingPlan[] = [
       'Accept local payments',
       'Order management',
     ],
-    cta: 'Get Started Free',
+    cta: 'Get the App',
     ctaHref: '#get-started',
   },
   {

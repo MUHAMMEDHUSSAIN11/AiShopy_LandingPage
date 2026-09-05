@@ -54,7 +54,7 @@ export default function Navbar() {
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
           >
-            Get Started Free
+            Get the App
           </motion.a>
         </div>
 
@@ -96,7 +96,7 @@ export default function Navbar() {
             className="mt-3 block rounded-full bg-brand-green px-5 py-2.5 text-center text-sm font-semibold text-white"
             onClick={() => setOpen(false)}
           >
-            Get Started Free
+            Get the App
           </a>
         </motion.div>
       )}
