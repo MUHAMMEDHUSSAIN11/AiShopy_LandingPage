@@ -38,7 +38,7 @@ export default function CTA() {
                   href="#get-started"
                   className="mt-8 inline-block rounded-full bg-white px-8 py-4 text-base font-semibold text-brand-green shadow-lg transition duration-300 hover:scale-105 hover:bg-green-50"
                 >
-                  Start Free Today
+                  Get the App
                 </a>
               </FadeIn>
             </div>

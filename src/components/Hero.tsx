@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useReducedMotion } from 'framer-motion'
-import WaitlistForm from '@/components/WaitlistForm'
+import AppPreviewShowcase from '@/components/AppPreviewShowcase'
 import AppStoreBadges from '@/components/AppStoreBadges'
 import FadeIn from '@/components/motion/FadeIn'
 import StoreUrlHighlight from '@/components/StoreUrlHighlight'
@@ -96,7 +96,7 @@ export default function Hero() {
 
           <FadeIn direction="right" view={false} delay={0.5} className="min-w-0 lg:pl-4">
             <div id="get-started">
-              <WaitlistForm />
+              <AppPreviewShowcase />
             </div>
           </FadeIn>
         </div>

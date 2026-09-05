@@ -11,14 +11,15 @@ type StaggerChildrenProps = {
 
 export function StaggerChildren({ children, className, stagger }: StaggerChildrenProps) {
   const reduceMotion = useReducedMotion()
+  const mergedClassName = ['w-full min-w-0', className].filter(Boolean).join(' ')
 
   if (reduceMotion) {
-    return <div className={className}>{children}</div>
+    return <div className={mergedClassName}>{children}</div>
   }
 
   return (
     <motion.div
-      className={className}
+      className={mergedClassName}
       initial="hidden"
       whileInView="visible"
       viewport={viewport}
@@ -44,13 +45,14 @@ type StaggerItemProps = {
 
 export function StaggerItem({ children, className }: StaggerItemProps) {
   const reduceMotion = useReducedMotion()
+  const mergedClassName = ['w-full min-w-0', className].filter(Boolean).join(' ')
 
   if (reduceMotion) {
-    return <div className={className}>{children}</div>
+    return <div className={mergedClassName}>{children}</div>
   }
 
   return (
-    <motion.div className={className} variants={staggerItem}>
+    <motion.div className={mergedClassName} variants={staggerItem}>
       {children}
     </motion.div>
   )

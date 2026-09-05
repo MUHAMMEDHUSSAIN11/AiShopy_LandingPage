@@ -8,10 +8,10 @@ import { catalogHighlights } from '@/lib/data'
 export default function StoreShowcase() {
   return (
     <section id="store" className="bg-gray-50 py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="grid items-stretch gap-12 lg:grid-cols-2 lg:items-center">
           <FadeIn direction="left">
-            <div>
+            <div className="mx-auto w-full max-w-lg text-center lg:mx-0 lg:max-w-none lg:text-left">
               <p className="text-sm font-semibold uppercase tracking-wider text-brand-green">
                 Your Online Store
               </p>
@@ -24,14 +24,14 @@ export default function StoreShowcase() {
                 Instagram, or anywhere else and let customers browse your full catalog.
               </p>
 
-              <div className="mt-6">
+              <div className="mt-6 flex justify-center lg:justify-start">
                 <StoreUrlHighlight storeName="fashionhub" size="lg" />
               </div>
 
-              <StaggerChildren className="mt-8 grid gap-3 sm:grid-cols-2" stagger={0.08}>
+              <StaggerChildren className="mt-8 grid gap-3 text-left sm:grid-cols-2" stagger={0.08}>
                 {catalogHighlights.map((item) => (
                   <StaggerItem key={item.label}>
-                    <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4">
+                    <div className="flex w-full items-start gap-3 rounded-xl border border-gray-200 bg-white p-4">
                       <span className="text-xl">{item.icon}</span>
                       <div>
                         <p className="text-sm font-semibold text-brand-dark">{item.label}</p>
@@ -45,7 +45,7 @@ export default function StoreShowcase() {
           </FadeIn>
 
           <FadeIn direction="right" delay={0.15}>
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60">
+            <div className="mx-auto w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60 lg:mx-0 lg:max-w-none">
               <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-3">
                 <div className="flex gap-1.5">
                   <span className="h-3 w-3 rounded-full bg-red-300" />
