@@ -8,7 +8,7 @@ import StoreUrlHighlight from '@/components/StoreUrlHighlight'
 export default function HowItWorks() {
   return (
     <section id="how-it-works" className="bg-gray-50 py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <SectionHeading
           title="How AiShopy Works"
           subtitle="Five simple steps to turn your social chats into a thriving sales channel."
@@ -17,8 +17,8 @@ export default function HowItWorks() {
         <div className="mt-16 space-y-8">
           {steps.map((step, i) => (
             <FadeIn key={step.number} direction={i % 2 === 0 ? 'left' : 'right'} delay={i * 0.05}>
-              <div className="relative rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg md:p-10">
-                <div className="flex flex-col gap-6 md:flex-row md:items-start">
+              <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg sm:p-8 md:p-10">
+                <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-start md:text-left">
                   <div className="flex items-center gap-4 md:w-48 md:shrink-0 md:flex-col md:items-start">
                     <span className="text-4xl">{step.icon}</span>
                     <span className="text-sm font-bold text-brand-green">{step.number}</span>
@@ -28,7 +28,7 @@ export default function HowItWorks() {
                     <p className="mt-3 text-gray-600">{step.description}</p>
 
                     {'example' in step && step.example && (
-                      <div className="mt-4">
+                      <div className="mt-4 flex flex-col items-center md:items-start">
                         <StoreUrlHighlight size="md" />
                         <p className="mt-2 text-sm text-gray-500">
                           Your catalog lives on your own branded subdomain.
@@ -37,7 +37,7 @@ export default function HowItWorks() {
                     )}
 
                     {'examples' in step && step.examples && (
-                      <div className="mt-4 space-y-2">
+                      <div className="mt-4 space-y-2 text-left">
                         {step.examples.map((ex) => (
                           <div
                             key={ex}
@@ -50,7 +50,7 @@ export default function HowItWorks() {
                     )}
 
                     {'items' in step && step.items && (
-                      <div className="mt-4 flex flex-wrap gap-2">
+                      <div className="mt-4 flex flex-wrap justify-center gap-2 md:justify-start">
                         {step.items.map((item) => (
                           <span
                             key={item}
@@ -63,7 +63,7 @@ export default function HowItWorks() {
                     )}
 
                     {'statuses' in step && step.statuses && (
-                      <div className="mt-4 flex flex-wrap gap-2">
+                      <div className="mt-4 flex flex-wrap justify-center gap-2 md:justify-start">
                         {step.statuses.map((status, j) => (
                           <span
                             key={status}

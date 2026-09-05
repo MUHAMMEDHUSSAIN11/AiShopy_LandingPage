@@ -40,7 +40,8 @@ export default function FadeIn({
   className,
 }: FadeInProps) {
   const reduceMotion = useReducedMotion()
-  const [isMdUp, setIsMdUp] = useState(true)
+  // Default false so mobile never briefly applies left/right slide (looks off-center).
+  const [isMdUp, setIsMdUp] = useState(false)
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 768px)')
@@ -53,8 +54,10 @@ export default function FadeIn({
   const resolvedDirection =
     !isMdUp && (direction === 'left' || direction === 'right') ? 'up' : direction
 
+  const mergedClassName = ['w-full min-w-0', className].filter(Boolean).join(' ')
+
   if (reduceMotion) {
-    return <div className={className}>{children}</div>
+    return <div className={mergedClassName}>{children}</div>
   }
 
   const transition = {
@@ -65,7 +68,7 @@ export default function FadeIn({
 
   return (
     <motion.div
-      className={className}
+      className={mergedClassName}
       initial="hidden"
       {...(view
         ? { whileInView: 'visible', viewport }

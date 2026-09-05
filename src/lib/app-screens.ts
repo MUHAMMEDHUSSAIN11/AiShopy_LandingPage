@@ -10,6 +10,11 @@ export type AppScreenSlide = {
  */
 export const APP_SCREEN_SLIDES: readonly AppScreenSlide[] = [
   {
+    src: '/landing/app-screens/store-website.png',
+    alt: 'Customer-facing storefront catalog on your aishopy.io link',
+    label: 'Your live store',
+  },
+  {
     src: '/landing/app-screens/whatsapp-aireply.png',
     alt: 'WhatsApp AI auto-reply sending product photos, price, and buy link',
     label: 'AI replies on WhatsApp',
@@ -45,7 +50,7 @@ export const APP_SCREEN_SLIDES: readonly AppScreenSlide[] = [
     label: 'Brand colors',
   },
   {
-    src: '/landing/app-screens/store-website.png',
+    src: '/landing/app-screens/store-marketplace-ui.png',
     alt: 'Customer-facing storefront catalog on your aishopy.io link',
     label: 'Your live store',
   },

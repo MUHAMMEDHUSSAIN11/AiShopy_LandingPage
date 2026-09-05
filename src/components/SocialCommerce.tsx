@@ -7,10 +7,10 @@ import { StaggerChildren, StaggerItem } from '@/components/motion/StaggerChildre
 export default function SocialCommerce() {
   return (
     <section className="py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="grid items-stretch gap-12 lg:grid-cols-2 lg:items-center">
           <FadeIn direction="left">
-            <div>
+            <div className="mx-auto w-full max-w-lg text-center lg:mx-0 lg:max-w-none lg:text-left">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
                 Social Commerce Made Simple
               </h2>
@@ -18,7 +18,7 @@ export default function SocialCommerce() {
                 Most businesses receive customer inquiries on WhatsApp and Instagram every day.
               </p>
               <p className="mt-4 font-medium text-gray-800">Customers ask:</p>
-              <ul className="mt-4 space-y-3">
+              <ul className="mx-auto mt-4 max-w-md space-y-3 text-left lg:mx-0 lg:max-w-none">
                 <StaggerChildren stagger={0.08}>
                   {customerQuestions.map((q) => (
                     <StaggerItem key={q}>
@@ -36,7 +36,7 @@ export default function SocialCommerce() {
           </FadeIn>
 
           <FadeIn direction="right" delay={0.15}>
-            <div className="rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-8">
+            <div className="mx-auto w-full max-w-lg rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-6 text-center sm:p-8 lg:mx-0 lg:max-w-none lg:text-left">
               <p className="text-lg leading-relaxed text-gray-700">
                 AiShopy automatically responds to customer questions, shares product details,
                 sends checkout links, and helps convert conversations into orders.

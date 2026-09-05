@@ -9,7 +9,7 @@ export default function MobileApp() {
   return (
     <section id="mobile-app" className="overflow-hidden py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
+        <div className="grid items-stretch gap-12 lg:grid-cols-2 lg:items-center">
           <FadeIn direction="left">
             <div className="relative mx-auto w-64 max-w-full lg:mx-0">
               <div className="rounded-[2.5rem] border-4 border-gray-800 bg-gray-800 p-2 shadow-2xl">
@@ -50,7 +50,7 @@ export default function MobileApp() {
           </FadeIn>
 
           <FadeIn direction="right" delay={0.15}>
-            <div>
+            <div className="mx-auto w-full max-w-lg text-center lg:mx-0 lg:max-w-none lg:text-left">
               <p className="text-sm font-semibold uppercase tracking-wider text-brand-green">
                 Manage On The Go
               </p>
@@ -63,7 +63,7 @@ export default function MobileApp() {
                 needing a laptop.
               </p>
 
-              <StaggerChildren className="mt-8 space-y-4" stagger={0.1}>
+              <StaggerChildren className="mt-8 space-y-4 text-left" stagger={0.1}>
                 {mobileAppFeatures.map((item) => (
                   <StaggerItem key={item}>
                     <div className="flex items-center gap-3">
@@ -76,7 +76,9 @@ export default function MobileApp() {
                 ))}
               </StaggerChildren>
 
-              <AppStoreBadges className="mt-8" />
+              <div className="mt-8 flex justify-center lg:justify-start">
+                <AppStoreBadges />
+              </div>
             </div>
           </FadeIn>
         </div>
