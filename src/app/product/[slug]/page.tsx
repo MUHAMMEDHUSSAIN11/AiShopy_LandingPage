@@ -1,20 +1,44 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import ErrorMessage from '@/components/store/ErrorMessage'
-
 import StoreTheme from '@/components/store/StoreTheme'
-
 import { getTemplatePack } from '@/components/store/templates'
-
+import { buildProductMetadata } from '@/lib/og-metadata'
 import { getStoreSlugFromHeaders } from '@/lib/server-api'
-
 import { getProduct, ProductNotFoundError } from '@/lib/product'
-
 import { getStoreBySlug, StoreNotFoundError } from '@/lib/store'
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ variant?: string }>
+}
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: ProductPageProps): Promise<Metadata> {
+  const storeSlug = await getStoreSlugFromHeaders()
+  const { slug } = await params
+  const { variant } = await searchParams
+
+  if (!storeSlug) {
+    return {}
+  }
+
+  try {
+    const [store, product] = await Promise.all([
+      getStoreBySlug(storeSlug),
+      getProduct(storeSlug, slug),
+    ])
+    return buildProductMetadata({
+      store,
+      product,
+      variantId: variant,
+    })
+  } catch {
+    return {}
+  }
 }
 
 export default async function ProductPage({ params, searchParams }: ProductPageProps) {
