@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: 'AiShopy — Turn WhatsApp & Instagram Chats Into Sales',
   description:
     'AiShopy helps businesses sell products through WhatsApp and Instagram with an AI-powered sales assistant, online storefront, and order tracking.',
+  alternates: {
+    canonical: 'https://www.aishopy.io',
+  },
   verification: {
     google: 'gT7Fg0BYnmbTDh9s79HjVn_LkdEx3mRiWkLsCZJGeUM',
   },

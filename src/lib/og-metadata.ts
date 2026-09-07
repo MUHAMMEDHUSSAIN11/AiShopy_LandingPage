@@ -47,6 +47,9 @@ export function buildMarketingMetadata(): Metadata {
   return {
     title,
     description,
+    alternates: {
+      canonical: AISHOPY_SITE_ORIGIN,
+    },
     openGraph: {
       type: 'website',
       url: AISHOPY_SITE_ORIGIN,
@@ -77,6 +80,9 @@ export function buildStoreMetadata(store: Store): Metadata {
   return {
     title,
     description,
+    alternates: {
+      canonical: origin,
+    },
     openGraph: {
       type: 'website',
       url: origin,
@@ -127,6 +133,9 @@ export function buildProductMetadata(input: {
   return {
     title,
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       type: 'website',
       url,

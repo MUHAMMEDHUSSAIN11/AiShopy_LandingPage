@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: 'Privacy Policy — AiShopy',
   description:
     'How AiShopy collects, uses, and protects merchant, customer, and WhatsApp data.',
+  alternates: {
+    canonical: 'https://www.aishopy.io/privacy',
+  },
 }
 
 export default function PrivacyPage() {
