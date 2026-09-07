@@ -5,6 +5,7 @@ import StoreShowcase from '@/components/StoreShowcase'
 import HowItWorks from '@/components/HowItWorks'
 import Features from '@/components/Features'
 import Pricing from '@/components/Pricing'
+import Faq from '@/components/Faq'
 import MobileApp from '@/components/MobileApp'
 import UpcomingFeatures from '@/components/UpcomingFeatures'
 import Insights from '@/components/Insights'
@@ -26,6 +27,7 @@ export default function LandingPage() {
         <HowItWorks />
         <Features />
         <Pricing />
+        <Faq />
         <MobileApp />
         <UpcomingFeatures />
         <Insights />
