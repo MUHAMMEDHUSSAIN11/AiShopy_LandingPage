@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import StoreCatalog from '@/components/store/StoreCatalog'
 import LandingPage from '@/components/landing/LandingPage'
+import SeoJsonLd from '@/components/SeoJsonLd'
 import {
   buildMarketingMetadata,
   buildStoreMetadata,
@@ -33,5 +34,10 @@ export default async function HomePage() {
     return <StoreCatalog storeSlug={storeSlug} />
   }
 
-  return <LandingPage />
+  return (
+    <>
+      <SeoJsonLd />
+      <LandingPage />
+    </>
+  )
 }
