@@ -3,8 +3,43 @@ export const navLinks = [
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Features', href: '#features' },
   { label: 'Pricing', href: '#pricing' },
+  { label: 'FAQ', href: '#faq' },
   { label: 'Built For', href: '#built-for' },
   { label: 'Contact', href: '#contact' },
+] as const
+
+/** Visible FAQ + FAQPage JSON-LD must use these strings verbatim. */
+export const faqs = [
+  {
+    question: 'What is AiShopy?',
+    answer:
+      'AiShopy is an AI-powered social commerce app for businesses that sell on WhatsApp and Instagram. It gives you a branded storefront, product catalog, and an AI sales assistant that answers customer questions, shares product links, and helps convert chats into orders. Store owners manage inventory and orders from the mobile app.',
+  },
+  {
+    question: 'How does AiShopy work with WhatsApp?',
+    answer:
+      'Connect your WhatsApp Business account to AiShopy. When customers message you about products, price, or size, the AI searches your catalog and replies with matching items and checkout links. You can still take over any conversation. Orders from those chats land in one dashboard with payment and fulfillment status.',
+  },
+  {
+    question: 'Does it work with Instagram?',
+    answer:
+      'Yes. AiShopy connects to Instagram so customer DMs are handled the same way as WhatsApp. The AI answers product questions from your catalog and sends store or checkout links in the chat. You manage Instagram and WhatsApp inquiries together in the owner app inbox instead of switching between apps.',
+  },
+  {
+    question: 'How much does AiShopy cost?',
+    answer:
+      'AiShopy has a free Starter plan and a paid Business plan at ₹999 per month, with a ₹99 first-month trial. Starter includes a store link, catalog, and order management with usage limits. Business adds unlimited products and orders, WhatsApp and Instagram inbox, AI auto replies, and staff accounts. Enterprise pricing is custom.',
+  },
+  {
+    question: 'Is there a free plan?',
+    answer:
+      'Yes. The Starter plan is free forever. It includes a basic store link, up to 20 products, 50 orders per month, one user, local payments, and order management. Upgrade to Business when you need AI inbox replies, unlimited catalog, WhatsApp and Instagram integrations, or extra staff.',
+  },
+  {
+    question: 'Do my customers shop on my own store website?',
+    answer:
+      'Yes. Your store is a full website for your customers: they can browse the catalog, add items to cart, place orders, and pay online — the same journey as any professional shop. It lives on a clean branded link such as yourstore.aishopy.io, which is easy to share on WhatsApp and Instagram and simple for buyers to open.',
+  },
 ] as const
 
 export const customerQuestions = [
