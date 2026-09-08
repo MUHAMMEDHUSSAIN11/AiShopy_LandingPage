@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next'
+import MicrosoftClarity from '@/components/MicrosoftClarity'
 import { inter } from '@/lib/fonts'
+import { getStoreSlugFromHeaders } from '@/lib/server-api'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -56,14 +58,20 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Clarity is for marketing analytics only — skip merchant storefronts.
+  const storeSlug = await getStoreSlugFromHeaders()
+
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans`}>{children}</body>
+      <body className={`${inter.variable} font-sans`}>
+        {!storeSlug ? <MicrosoftClarity /> : null}
+        {children}
+      </body>
     </html>
   )
 }
