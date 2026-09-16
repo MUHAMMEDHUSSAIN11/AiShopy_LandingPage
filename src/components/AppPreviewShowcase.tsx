@@ -82,7 +82,7 @@ export default function AppPreviewShowcase() {
                   key={slide.src}
                   className="absolute inset-0"
                   initial={
-                    reduceMotion ? { opacity: 1 } : { opacity: 0, x: 24 }
+                    reduceMotion ? { opacity: 1 } : { opacity: 0, x: 24 } 
                   }
                   animate={{ opacity: 1, x: 0 }}
                   exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -24 }}
