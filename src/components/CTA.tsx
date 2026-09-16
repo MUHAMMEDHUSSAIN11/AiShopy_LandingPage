@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import FadeIn from '@/components/motion/FadeIn'
+import { WEB_APP_LOGIN_URL } from '@/lib/constants'
 
 export default function CTA() {
   return (
@@ -34,12 +35,20 @@ export default function CTA() {
                 </p>
               </FadeIn>
               <FadeIn direction="up" delay={0.4}>
-                <a
-                  href="#get-started"
-                  className="mt-8 inline-block rounded-full bg-white px-8 py-4 text-base font-semibold text-brand-green shadow-lg transition duration-300 hover:scale-105 hover:bg-green-50"
-                >
-                  Get the App
-                </a>
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                  <a
+                    href="#get-started"
+                    className="inline-block rounded-full bg-white px-8 py-4 text-base font-semibold text-brand-green shadow-lg transition duration-300 hover:scale-105 hover:bg-green-50"
+                  >
+                    Get the App
+                  </a>
+                  <a
+                    href={WEB_APP_LOGIN_URL}
+                    className="inline-block rounded-full bg-[#1A1A1A] px-8 py-4 text-base font-semibold text-white shadow-lg transition duration-300 hover:scale-105 hover:bg-black"
+                  >
+                    Open web app
+                  </a>
+                </div>
               </FadeIn>
             </div>
           </div>

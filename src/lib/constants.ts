@@ -5,3 +5,5 @@ export const PRIVACY_URL = 'https://www.aishopy.io/privacy'
 export const TERMS_URL = 'https://www.aishopy.io/terms'
 export const PLAY_STORE_URL =
   'https://play.google.com/store/apps/details?id=com.aishopy.app'
+export const WEB_APP_URL = 'https://app.aishopy.io'
+export const WEB_APP_LOGIN_URL = `${WEB_APP_URL}/login`

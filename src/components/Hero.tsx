@@ -56,7 +56,7 @@ export default function Hero() {
               <div className="mt-5 flex justify-center lg:justify-start">
                 <StoreUrlHighlight size="lg" />
               </div>
-              <div className="mt-6 flex justify-center lg:hidden">
+              <div className="mt-6 flex justify-center lg:justify-start">
                 <AppStoreBadges size="sm" />
               </div>
             </FadeIn>

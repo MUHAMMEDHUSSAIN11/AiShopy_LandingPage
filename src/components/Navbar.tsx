@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { motion, useReducedMotion } from 'framer-motion'
 import { navLinks } from '@/lib/data'
+import { WEB_APP_LOGIN_URL } from '@/lib/constants'
 import { smoothEase } from '@/lib/motion'
 
 export default function Navbar() {
@@ -45,6 +46,15 @@ export default function Navbar() {
               {link.label}
             </motion.a>
           ))}
+          <motion.a
+            href={WEB_APP_LOGIN_URL}
+            className="text-sm font-medium text-gray-600 transition hover:text-brand-green"
+            initial={reduceMotion ? false : { opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.38, duration: 0.4, ease: smoothEase }}
+          >
+            Log in
+          </motion.a>
           <motion.a
             href="#get-started"
             className="rounded-full bg-brand-green px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600"
@@ -91,6 +101,13 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
+          <a
+            href={WEB_APP_LOGIN_URL}
+            className="mt-3 block py-2 text-sm font-medium text-gray-600"
+            onClick={() => setOpen(false)}
+          >
+            Log in
+          </a>
           <a
             href="#get-started"
             className="mt-3 block rounded-full bg-brand-green px-5 py-2.5 text-center text-sm font-semibold text-white"
