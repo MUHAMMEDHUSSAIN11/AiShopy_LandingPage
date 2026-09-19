@@ -4,7 +4,7 @@ import { CONTACT_EMAIL, COMPANY_NAME } from '@/lib/constants'
 export const privacyContent: LegalDocumentContent = {
   title: 'Privacy Policy',
   subtitle: 'How AiShopy handles your information',
-  lastUpdated: 'September 3, 2026',
+  lastUpdated: 'September 18, 2026',
   summary:
     'AiShopy helps merchants run a store and WhatsApp inbox. We collect account, store, product, order, and WhatsApp message data to provide the app. We use providers like Meta (WhatsApp), Supabase, and cloud hosting. Chat Boat uses third-party AI (OpenAI and/or TokenBee) only with your consent. We do not sell your data. You can delete your account in the app or contact aishopyapp@gmail.com.',
   sections: [
@@ -87,6 +87,7 @@ export const privacyContent: LegalDocumentContent = {
             'Device type, operating system, and app version',
             'IP address and general log data (e.g. API requests, errors, timestamps)',
             'Information needed to maintain security, prevent abuse, and improve reliability',
+            'On the public marketing website, Microsoft Clarity (session analytics) and Meta Pixel (ad measurement and optimization)',
           ],
         },
         {
@@ -225,7 +226,7 @@ export const privacyContent: LegalDocumentContent = {
     {
       title: '12. Third-party services and links',
       paragraphs: [
-        'The Service integrates with Meta WhatsApp Business Platform. Your use of WhatsApp is also subject to Meta’s and WhatsApp’s terms and policies:',
+        'The Service integrates with Meta WhatsApp Business Platform. The marketing website also uses Meta Pixel so we can measure and improve ads on Facebook and Instagram. Your use of WhatsApp is also subject to Meta’s and WhatsApp’s terms and policies:',
         'We are not responsible for third-party websites or services linked from our Service.',
       ],
       bullets: [
