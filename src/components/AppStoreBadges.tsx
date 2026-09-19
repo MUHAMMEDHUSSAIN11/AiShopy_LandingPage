@@ -1,4 +1,4 @@
-import { PLAY_STORE_URL } from '@/lib/constants'
+import { PLAY_STORE_URL, WEB_APP_LOGIN_URL } from '@/lib/constants'
 
 type AppStoreBadgesProps = {
   size?: 'sm' | 'md'
@@ -34,6 +34,27 @@ function GooglePlayBadge({ compact }: { compact: boolean }) {
       </text>
       <text x="44" y="28" fill="#FFFFFF" fontSize="12" fontWeight="700" fontFamily="Arial, sans-serif">
         Google Play
+      </text>
+    </svg>
+  )
+}
+
+function WebAppBadge({ compact }: { compact: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 135 40"
+      aria-hidden="true"
+      className={compact ? 'h-10 w-auto' : 'h-12 w-auto'}
+    >
+      <rect width="135" height="40" rx="6" fill="#2DB84C" />
+      <rect x="9" y="8.5" width="22" height="15" rx="2" fill="none" stroke="#FFFFFF" strokeWidth="1.5" />
+      <path d="M20 23.5v2.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M14.5 26h11" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+      <text x="38" y="15" fill="#FFFFFF" fontSize="7" fontFamily="Arial, sans-serif">
+        USE IN BROWSER
+      </text>
+      <text x="38" y="28" fill="#FFFFFF" fontSize="12" fontWeight="700" fontFamily="Arial, sans-serif">
+        Web app
       </text>
     </svg>
   )
@@ -89,6 +110,14 @@ export default function AppStoreBadges({
           </span>
         </span>
       </div>
+
+      <a
+        href={WEB_APP_LOGIN_URL}
+        aria-label="Open AiShopy in your browser"
+        className="inline-flex transition hover:opacity-90"
+      >
+        <WebAppBadge compact={compact} />
+      </a>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import FadeIn from '@/components/motion/FadeIn'
 import AppStoreBadges from '@/components/AppStoreBadges'
-import { COMPANY_NAME, CONTACT_EMAIL } from '@/lib/constants'
+import { COMPANY_NAME, CONTACT_EMAIL, WEB_APP_LOGIN_URL } from '@/lib/constants'
 
 export default function Footer() {
   return (
@@ -19,6 +19,12 @@ export default function Footer() {
             <div className="flex flex-col items-center gap-3 md:items-end">
               <AppStoreBadges size="sm" />
               <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
+                <a
+                  href={WEB_APP_LOGIN_URL}
+                  className="text-gray-500 transition hover:text-brand-green"
+                >
+                  Log in
+                </a>
                 <Link href="/privacy" className="text-gray-500 transition hover:text-brand-green">
                   Privacy policy
                 </Link>
