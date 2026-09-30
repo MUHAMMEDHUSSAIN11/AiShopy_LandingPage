@@ -3,6 +3,7 @@ import MetaPixel from '@/components/MetaPixel'
 import MicrosoftClarity from '@/components/MicrosoftClarity'
 import { inter } from '@/lib/fonts'
 import { getStoreSlugFromHeaders } from '@/lib/server-api'
+import CaptureChatSrc from '@/components/store/CaptureChatSrc'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -76,6 +77,7 @@ export default async function RootLayout({
             <MetaPixel />
           </>
         ) : null}
+        {storeSlug ? <CaptureChatSrc /> : null}
         {children}
       </body>
     </html>

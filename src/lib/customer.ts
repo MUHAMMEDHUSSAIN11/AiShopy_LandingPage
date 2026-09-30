@@ -120,6 +120,7 @@ export async function createCartOrder(
     paymentMethod: string
     paymentProofUrl?: string
     notes?: string
+    conversationId?: number | null
   },
 ): Promise<OrderCreateResponse> {
   const response = await fetch(`${AISHOPY_API_URL}/api/public/orders`, {
@@ -138,6 +139,7 @@ export async function createCartOrder(
       ...(payload.paymentProofUrl ? { payment_proof_url: payload.paymentProofUrl } : {}),
       shipping_address: payload.shippingAddress,
       notes: payload.notes ?? '',
+      ...(payload.conversationId ? { conversation_id: payload.conversationId } : {}),
     }),
   })
 

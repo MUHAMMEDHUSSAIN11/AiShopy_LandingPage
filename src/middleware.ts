@@ -3,15 +3,8 @@ import type { NextRequest } from 'next/server'
 import { STORE_SLUG_HEADER } from '@/lib/tenant'
 
 const RESERVED_SUBDOMAINS = new Set(['www', 'api', 'app', 'admin', 'mail'])
+const PLATFORM_HOSTS = new Set(['aishopy.io', 'www.aishopy.io', 'localhost', '127.0.0.1'])
 
-/**
- * Extracts store slug from host for multi-tenant subdomains.
- *
- * Supported patterns:
- * - fashionhub.localhost:3000
- * - fashionhub.aishopy.io
- * - fashionhub.aishopy.io
- */
 function extractStoreSlug(host: string): string | null {
   const hostname = host.split(':')[0].toLowerCase()
 
@@ -43,9 +36,31 @@ function extractStoreSlug(host: string): string | null {
   return null
 }
 
-export function middleware(request: NextRequest) {
+async function resolveCustomDomainSlug(host: string): Promise<string | null> {
+  const hostname = host.split(':')[0].toLowerCase()
+  if (!hostname || PLATFORM_HOSTS.has(hostname)) return null
+  if (hostname.endsWith('.aishopy.io') || hostname.endsWith('.localhost')) return null
+
+  const api = process.env.NEXT_PUBLIC_AISHOPY_API_URL?.replace(/\/$/, '')
+  if (!api) return null
+
+  try {
+    const response = await fetch(
+      `${api}/api/public/resolve-host?host=${encodeURIComponent(hostname)}`,
+      { headers: { Accept: 'application/json' } },
+    )
+    if (!response.ok) return null
+    const body = (await response.json()) as { data?: { slug?: string | null } }
+    const slug = body.data?.slug?.trim()
+    return slug || null
+  } catch {
+    return null
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const host = request.headers.get('host') ?? ''
-  const storeSlug = extractStoreSlug(host)
+  const storeSlug = extractStoreSlug(host) ?? (await resolveCustomDomainSlug(host))
 
   if (!storeSlug) {
     return NextResponse.next()
