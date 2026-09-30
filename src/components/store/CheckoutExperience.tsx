@@ -19,6 +19,7 @@ import {
   type RazorpayHandlerResponse,
 } from '@/lib/razorpay'
 import { checkoutSchema, phoneSchema, type CheckoutFormData } from '@/lib/checkout-schema'
+import { readChatConversationId } from '@/lib/chat-attribution'
 import { formatPrice } from '@/lib/format'
 import { getTemplateId, getThemeStyle, getThemeSurface } from '@/lib/store-theme'
 import type { OrderCreateResponse, ShippingAddress } from '@/types/customer'
@@ -331,6 +332,7 @@ export default function CheckoutExperience({
         shippingAddress: result.data,
         paymentMethod,
         paymentProofUrl: isUpi ? proofUrl : undefined,
+        conversationId: readChatConversationId(),
       })
 
       if (isRazorpay) {
