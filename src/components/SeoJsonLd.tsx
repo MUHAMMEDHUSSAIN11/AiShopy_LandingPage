@@ -1,4 +1,4 @@
-import { COMPANY_NAME, CONTACT_EMAIL, PLAY_STORE_URL } from '@/lib/constants'
+import { APP_STORE_URL, COMPANY_NAME, CONTACT_EMAIL, PLAY_STORE_URL } from '@/lib/constants'
 import { faqs, steps } from '@/lib/data'
 import { AISHOPY_APP_ICON_URL, AISHOPY_SITE_ORIGIN } from '@/lib/og-metadata'
 import { pricingPlans } from '@/lib/pricing'
@@ -31,7 +31,7 @@ const jsonLd = {
       url: AISHOPY_SITE_ORIGIN,
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Android, iOS, Web',
-      downloadUrl: PLAY_STORE_URL,
+      downloadUrl: [PLAY_STORE_URL, APP_STORE_URL],
       publisher: { '@id': ORGANIZATION_ID },
       offers: pricingPlans
         .filter((plan) => plan.id in NUMERIC_OFFERS)

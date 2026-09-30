@@ -1,4 +1,4 @@
-import { PLAY_STORE_URL, WEB_APP_LOGIN_URL } from '@/lib/constants'
+import { APP_STORE_URL, PLAY_STORE_URL, WEB_APP_LOGIN_URL } from '@/lib/constants'
 
 type AppStoreBadgesProps = {
   size?: 'sm' | 'md'
@@ -100,16 +100,15 @@ export default function AppStoreBadges({
         <GooglePlayBadge compact={compact} />
       </a>
 
-      <div className="relative inline-flex" aria-label="AiShopy on the App Store — coming soon">
-        <div className="opacity-55">
-          <AppStoreBadge compact={compact} />
-        </div>
-        <span className="absolute inset-0 flex items-center justify-center rounded-md bg-black/45 px-2">
-          <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-black">
-            Coming Soon
-          </span>
-        </span>
-      </div>
+      <a
+        href={APP_STORE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Download AiShopy on the App Store"
+        className="inline-flex transition hover:opacity-90"
+      >
+        <AppStoreBadge compact={compact} />
+      </a>
 
       <a
         href={WEB_APP_LOGIN_URL}
