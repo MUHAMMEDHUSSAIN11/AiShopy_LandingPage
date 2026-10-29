@@ -15,11 +15,6 @@ export const APP_SCREEN_SLIDES: readonly AppScreenSlide[] = [
     label: 'Your live store',
   },
   {
-    src: '/landing/app-screens/whatsapp-aireply.png',
-    alt: 'WhatsApp AI auto-reply sending product photos, price, and buy link',
-    label: 'AI replies on WhatsApp',
-  },
-  {
     src: '/landing/app-screens/products-dark.jpg',
     alt: 'Manage your product catalog in the AiShopy app',
     label: 'Manage products',
