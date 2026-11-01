@@ -33,7 +33,7 @@ export const pricingPlans: PricingPlan[] = [
   {
     id: 'business',
     name: 'Business',
-    price: '₹999',
+    price: '₹1399',
     priceNote: '₹99 / 1st month trial',
     description: 'Everything you need to scale sales on WhatsApp and Instagram.',
     features: [

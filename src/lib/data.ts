@@ -28,7 +28,7 @@ export const faqs = [
   {
     question: 'How much does AiShopy cost?',
     answer:
-      'AiShopy has a free Starter plan and a paid Business plan at ₹999 per month, with a ₹99 first-month trial. Starter includes a store link, catalog, and order management with usage limits. Business adds unlimited products and orders, WhatsApp and Instagram inbox, AI auto replies, and staff accounts. Enterprise pricing is custom.',
+      'AiShopy has a free Starter plan and a paid Business plan at ₹1399 per month, with a ₹99 first-month trial. Starter includes a store link, catalog, and order management with usage limits. Business adds unlimited products and orders, WhatsApp and Instagram inbox, AI auto replies, and staff accounts. Enterprise pricing is custom.',
   },
   {
     question: 'Is there a free plan?',
