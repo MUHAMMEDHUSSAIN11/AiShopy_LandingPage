@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import FadeIn from '@/components/motion/FadeIn'
 import AppStoreBadges from '@/components/AppStoreBadges'
+import MetaTechProviderBadge from '@/components/MetaTechProviderBadge'
 import { COMPANY_NAME, CONTACT_EMAIL, WEB_APP_LOGIN_URL } from '@/lib/constants'
 
 export default function Footer() {
@@ -41,6 +42,7 @@ export default function Footer() {
               <p className="text-sm text-gray-400">
                 &copy; {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.
               </p>
+              <MetaTechProviderBadge variant="footer" />
             </div>
           </div>
         </div>

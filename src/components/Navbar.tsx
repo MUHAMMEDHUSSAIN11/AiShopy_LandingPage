@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { motion, useReducedMotion } from 'framer-motion'
+import MetaTechProviderBadge from '@/components/MetaTechProviderBadge'
 import { navLinks } from '@/lib/data'
 import { WEB_APP_LOGIN_URL } from '@/lib/constants'
 import { smoothEase } from '@/lib/motion'
@@ -28,6 +29,7 @@ export default function Navbar() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: smoothEase }}
     >
+      <MetaTechProviderBadge variant="bar" />
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <a href="#" className="flex items-center gap-2">
           <Image src="/logo.png" alt="AiShopy" width={120} height={32} className="h-8 w-auto" priority />
