@@ -37,7 +37,7 @@ export default function ProductCardMinimal({ storeSlug, product }: ProductCardMi
             src={imageUrl}
             alt={product.name}
             fill
-            className="object-cover transition duration-500 group-hover:scale-[1.04]"
+            className="object-contain"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (

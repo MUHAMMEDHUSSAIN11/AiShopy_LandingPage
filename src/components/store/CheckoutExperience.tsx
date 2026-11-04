@@ -468,7 +468,7 @@ export default function CheckoutExperience({
           >
             {item.imageUrl ? (
               <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-store-subtle">
-                <Image src={item.imageUrl} alt={item.name} fill className="object-cover" sizes="64px" />
+                <Image src={item.imageUrl} alt={item.name} fill className="object-contain" sizes="64px" />
               </div>
             ) : null}
             <div className="min-w-0 flex-1">

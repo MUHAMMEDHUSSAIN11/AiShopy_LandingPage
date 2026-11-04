@@ -4,9 +4,7 @@ import { useCallback, useMemo, useState, useTransition } from 'react'
 import CatalogProductList from '@/components/store/CatalogProductList'
 import CategoryToggler from '@/components/store/CategoryToggler'
 import ProductSearchBar from '@/components/store/ProductSearchBar'
-import StoreSidebar from '@/components/store/StoreSidebar'
 import StoreSidebarPanel from '@/components/store/StoreSidebarPanel'
-import MarketplaceCategoryNav from '@/components/store/templates/boutique/MarketplaceCategoryNav'
 import MarketplaceHeader from '@/components/store/templates/boutique/MarketplaceHeader'
 import { useCartReconcile } from '@/hooks/use-cart-reconcile'
 import { flattenCategories, filterProductsByCategorySubtree, type Category } from '@/types/category'
@@ -23,10 +21,7 @@ type StoreCatalogMarketplaceProps = {
   previewMode?: boolean
 }
 
-/**
- * Boutique “marketplace” layout: persistent category sidebar on desktop,
- * hamburger + drawer on mobile, editorial product grid.
- */
+/** Boutique “marketplace” layout: hamburger + category drawer, editorial product grid. */
 export default function StoreCatalogMarketplace({
   storeSlug,
   store,
@@ -55,6 +50,7 @@ export default function StoreCatalogMarketplace({
   const handleCategoryChange = useCallback(
     (categoryId: string) => {
       setActiveCategoryId(categoryId)
+      setSidebarOpen(false)
       startTransition(async () => {
         if (previewMode) {
           setProducts(

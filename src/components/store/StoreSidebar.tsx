@@ -27,11 +27,11 @@ export default function StoreSidebar({
   }
 
   const navItemClass =
-    'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm font-medium tracking-wide text-gray-700 transition hover:bg-store-primary-soft hover:text-store-primary'
+    'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm font-medium tracking-wide text-store-text transition hover:bg-store-primary-soft hover:text-store-primary'
 
   return (
-    <div className="flex h-full flex-col">
-      <nav aria-label="Store navigation" className="flex-1 overflow-y-auto px-3 py-4">
+    <div className="flex h-full min-h-0 flex-col">
+      <nav aria-label="Store navigation" className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-1">
           <li>
             <Link href="/" onClick={onClose} className={navItemClass}>
@@ -48,7 +48,7 @@ export default function StoreSidebar({
             >
               <span>Categories</span>
               <svg
-                className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${
+                className={`h-4 w-4 shrink-0 text-store-muted transition-transform ${
                   categoriesOpen ? 'rotate-180' : ''
                 }`}
                 fill="none"
@@ -99,7 +99,7 @@ function CategoryTree({ categories, activeCategoryId, onSelect, depth = 0 }: Cat
             className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium tracking-wide transition ${
               activeCategoryId === category.id
                 ? 'bg-store-primary text-white'
-                : 'text-gray-600 hover:bg-store-primary-soft hover:text-store-primary'
+                : 'text-store-muted hover:bg-store-primary-soft hover:text-store-primary'
             }`}
           >
             {category.name}

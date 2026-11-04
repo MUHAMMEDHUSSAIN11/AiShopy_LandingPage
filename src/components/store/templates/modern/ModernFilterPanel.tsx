@@ -1,6 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
+import SidebarWatermark from '@/components/store/SidebarWatermark'
+import { getStorefrontPortalRoot } from '@/lib/storefront-portal'
 import type { Category } from '@/types/category'
 
 type SortOption = 'default' | 'price-asc' | 'price-desc'
@@ -24,14 +27,17 @@ export default function ModernFilterPanel({
   sort,
   onSortChange,
 }: ModernFilterPanelProps) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   useEffect(() => {
     if (!open) {
       document.body.style.overflow = ''
       return
     }
-
-    const isDesktop = window.matchMedia('(min-width: 1024px)').matches
-    if (isDesktop) return
 
     document.body.style.overflow = 'hidden'
     return () => {
@@ -44,7 +50,9 @@ export default function ModernFilterPanel({
     onClose()
   }
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <>
       <div
         className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 lg:hidden ${
@@ -55,13 +63,13 @@ export default function ModernFilterPanel({
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col border-r-2 border-store-text/10 bg-store-bg shadow-xl transition-transform duration-300 ease-out lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-dvh w-72 max-w-[85vw] flex-col overflow-hidden border-r-2 border-store-text/10 bg-store-bg shadow-xl transition-transform duration-300 ease-out lg:hidden ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-hidden={!open}
         aria-label="Filters"
       >
-        <div className="flex items-center justify-between border-b border-store-border px-4 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-store-border px-4 py-4">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-store-muted">Filters</p>
           <button
             type="button"
@@ -75,7 +83,7 @@ export default function ModernFilterPanel({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-store-muted">Category</p>
           <ul className="mt-3 space-y-1">
             {filterChips.map((chip) => {
@@ -111,7 +119,10 @@ export default function ModernFilterPanel({
             </select>
           </div>
         </div>
+
+        <SidebarWatermark className="shrink-0" />
       </aside>
-    </>
+    </>,
+    getStorefrontPortalRoot(),
   )
 }

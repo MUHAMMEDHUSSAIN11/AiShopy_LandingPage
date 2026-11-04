@@ -106,7 +106,7 @@ export default function CartPageContent({
             }
           >
             {item.imageUrl ? (
-              <Image src={item.imageUrl} alt={item.name} fill className="object-cover" sizes="160px" />
+              <Image src={item.imageUrl} alt={item.name} fill className="object-contain" sizes="160px" />
             ) : null}
           </div>
 
