@@ -67,7 +67,7 @@ export const termsContent: LegalDocumentContent = {
         'Subscription name: AiShopy Business',
         'Product identifier: aishopy_business_monthly',
         'Billing period: 1 month (auto-renewing)',
-        'Price: shown in the app at purchase time in your local currency (for example, ₹1399/month in India)',
+        'Price: shown in the app at purchase time in your local currency (for example, ₹999/month in India)',
         'Payment is charged to your Apple ID account at confirmation of purchase',
         'Subscription automatically renews unless cancelled at least 24 hours before the end of the current billing period',
         'Your Apple ID account will be charged for renewal within 24 hours prior to the end of the current period at the then-current price',

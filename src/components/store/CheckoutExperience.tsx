@@ -22,6 +22,7 @@ import { checkoutSchema, phoneSchema, type CheckoutFormData } from '@/lib/checko
 import { readChatConversationId } from '@/lib/chat-attribution'
 import { formatPrice } from '@/lib/format'
 import { getTemplateId, getThemeStyle, getThemeSurface } from '@/lib/store-theme'
+import { buildUpiPayUrl } from '@/lib/upi-pay-link'
 import type { OrderCreateResponse, ShippingAddress } from '@/types/customer'
 import { getEnabledPaymentMethods, getStoreUpiDetails, type Store } from '@/types/store'
 import type { StoreTemplateId } from '@/types/store'
@@ -141,6 +142,15 @@ export default function CheckoutExperience({
 
   const isUpi = paymentMethod === 'upi'
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const upiPayUrl = useMemo(() => {
+    if (!isUpi || !upiDetails?.vpa) return null
+    return buildUpiPayUrl({
+      vpa: upiDetails.vpa,
+      payeeName: upiDetails.displayName || store.name,
+      amount: totalPrice,
+      note: store.name,
+    })
+  }, [isUpi, store.name, totalPrice, upiDetails])
 
   useEffect(() => {
     setPortalReady(true)
@@ -674,6 +684,21 @@ export default function CheckoutExperience({
                       <p className="mt-0.5 break-all font-mono text-store-text">{upiDetails.vpa}</p>
                     ) : null}
                   </div>
+                </div>
+              ) : null}
+
+              {upiPayUrl ? (
+                <div className="space-y-1.5">
+                  <a
+                    href={upiPayUrl}
+                    className={`inline-flex w-full items-center justify-center ${buttonRound} bg-store-primary px-4 py-3 text-sm font-semibold text-white`}
+                  >
+                    Pay in UPI app
+                  </a>
+                  <p className="text-xs text-store-muted">
+                    On a phone this opens GPay, PhonePe, or Paytm with the amount filled. Then upload
+                    a screenshot to confirm your order.
+                  </p>
                 </div>
               ) : null}
 

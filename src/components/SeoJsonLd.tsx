@@ -9,7 +9,7 @@ const PRICING_URL = `${AISHOPY_SITE_ORIGIN}/#pricing`
 
 const NUMERIC_OFFERS: Record<string, string> = {
   starter: '0',
-  business: '1399',
+  business: '999',
 }
 
 const jsonLd = {
