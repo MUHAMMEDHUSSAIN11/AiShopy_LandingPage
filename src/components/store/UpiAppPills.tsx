@@ -17,6 +17,7 @@ const LOGO: Record<UpiAppId, { src: string; alt: string; className: string; labe
     src: '/logos/paytm.png',
     alt: 'Paytm',
     className: 'h-5 w-auto',
+    label: 'Paytm',
   },
 }
 
