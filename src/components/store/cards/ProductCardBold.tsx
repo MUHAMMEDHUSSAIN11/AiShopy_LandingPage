@@ -34,7 +34,7 @@ export default function ProductCardBold({ storeSlug, product }: ProductCardBoldP
             src={imageUrl}
             alt={product.name}
             fill
-            className="object-cover transition duration-300 group-hover:scale-105"
+            className="object-contain"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (

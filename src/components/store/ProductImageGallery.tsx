@@ -34,7 +34,7 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
           src={activeImage}
           alt={alt}
           fill
-          className="object-cover"
+          className="object-contain"
           priority
           sizes="(max-width: 1024px) 100vw, 50vw"
           draggable={false}
@@ -64,7 +64,7 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
                   : 'border-store-border hover:border-store-primary/60'
               }`}
             >
-              <Image src={url} alt={`${alt} ${index + 1}`} fill className="object-cover" sizes="100px" />
+              <Image src={url} alt={`${alt} ${index + 1}`} fill className="object-contain bg-store-subtle" sizes="100px" />
             </button>
           ))}
         </div>

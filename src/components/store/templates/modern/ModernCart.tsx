@@ -63,7 +63,7 @@ export default function ModernCart({ store }: CartTemplateProps) {
                   <div className="flex gap-3 ">
                     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-store-subtle sm:row-span-1">
                       {item.imageUrl ? (
-                        <Image src={item.imageUrl} alt={item.name} fill className="object-cover" sizes="56px" />
+                        <Image src={item.imageUrl} alt={item.name} fill className="object-contain" sizes="56px" />
                       ) : null}
                     </div>
                     <div className="min-w-0 flex-1 sm:min-w-0">

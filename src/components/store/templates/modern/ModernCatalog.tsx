@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import CatalogProductList from '@/components/store/CatalogProductList'
 import CartIcon from '@/components/store/CartIcon'
 import ProductSearchBar from '@/components/store/ProductSearchBar'
+import SidebarWatermark from '@/components/store/SidebarWatermark'
 import ModernFilterPanel from '@/components/store/templates/modern/ModernFilterPanel'
 import ModernFilterToggle from '@/components/store/templates/modern/ModernFilterToggle'
 import type { CatalogTemplateProps } from '@/components/store/templates/types'
@@ -87,7 +88,7 @@ export default function ModernCatalog({
   }, [activeCategoryId, filterChips])
 
   return (
-    <div className="catalog-modern min-h-screen bg-store-bg-shell template-page-enter">
+    <div className="catalog-modern flex min-h-screen flex-col bg-store-bg-shell template-page-enter lg:h-dvh lg:overflow-hidden">
       <ModernFilterPanel
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
@@ -98,7 +99,7 @@ export default function ModernCatalog({
         onSortChange={setSort}
       />
 
-      <header className="sticky top-0 z-30 border-b-2 border-store-text/10 bg-store-bg">
+      <header className="sticky top-0 z-30 shrink-0 border-b-2 border-store-text/10 bg-store-bg">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-3 sm:px-6">
           <Link
             href={getHref('/')}
@@ -113,48 +114,51 @@ export default function ModernCatalog({
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl lg:grid-cols-[240px_1fr]">
-        <aside className="catalog-modern-filters hidden border-r border-store-border bg-store-bg p-4 lg:block">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-store-muted">
-            Filters
-          </p>
-          <ul className="mt-4 space-y-1">
-            {filterChips.map((chip) => {
-              const active = chip.id === activeCategoryId
-              return (
-                <li key={chip.id || 'all'}>
-                  <button
-                    type="button"
-                    onClick={() => handleCategoryChange(chip.id)}
-                    className={`w-full rounded-md px-3 py-2 text-left text-sm font-medium transition ${
-                      active
-                        ? 'bg-store-text text-store-bg'
-                        : 'text-store-text hover:bg-store-subtle'
-                    }`}
-                  >
-                    {chip.name}
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-          <div className="mt-8 border-t border-store-border pt-4">
+      <div className="mx-auto grid w-full max-w-7xl flex-1 lg:grid-cols-[240px_1fr] lg:min-h-0 lg:overflow-hidden">
+        <aside className="catalog-modern-filters hidden min-h-0 flex-col overflow-hidden border-r border-store-border bg-store-bg lg:flex">
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-store-muted">
-              Sort
+              Filters
             </p>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as typeof sort)}
-              className="mt-2 w-full rounded-md border border-store-border bg-store-bg px-3 py-2 text-sm text-store-text"
-            >
-              <option value="default">Featured</option>
-              <option value="price-asc">Price: low to high</option>
-              <option value="price-desc">Price: high to low</option>
-            </select>
+            <ul className="mt-4 space-y-1">
+              {filterChips.map((chip) => {
+                const active = chip.id === activeCategoryId
+                return (
+                  <li key={chip.id || 'all'}>
+                    <button
+                      type="button"
+                      onClick={() => handleCategoryChange(chip.id)}
+                      className={`w-full rounded-md px-3 py-2 text-left text-sm font-medium transition ${
+                        active
+                          ? 'bg-store-text text-store-bg'
+                          : 'text-store-text hover:bg-store-subtle'
+                      }`}
+                    >
+                      {chip.name}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+            <div className="mt-8 border-t border-store-border pt-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-store-muted">
+                Sort
+              </p>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as typeof sort)}
+                className="mt-2 w-full rounded-md border border-store-border bg-store-bg px-3 py-2 text-sm text-store-text"
+              >
+                <option value="default">Featured</option>
+                <option value="price-asc">Price: low to high</option>
+                <option value="price-desc">Price: high to low</option>
+              </select>
+            </div>
           </div>
+          <SidebarWatermark className="shrink-0" />
         </aside>
 
-        <main className="min-w-0 px-4 py-6 sm:px-6">
+        <main className="min-w-0 px-4 py-6 sm:px-6 lg:overflow-y-auto">
           <div className="mb-4 flex flex-wrap items-center gap-3 lg:hidden">
             <ModernFilterToggle open={filterOpen} onClick={() => setFilterOpen((open) => !open)} />
             <p className="min-w-0 flex-1 text-sm font-medium text-store-text">

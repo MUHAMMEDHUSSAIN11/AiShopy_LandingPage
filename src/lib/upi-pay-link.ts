@@ -5,7 +5,7 @@ type BuildUpiPayUrlInput = {
   note?: string
 }
 
-export type UpiAppId = 'gpay' | 'phonepe' | 'paytm'
+export type UpiAppId = 'upi' | 'gpay' | 'phonepe' | 'paytm'
 
 export type UpiAppLink = {
   id: UpiAppId
@@ -35,7 +35,7 @@ function buildUpiPayQuery({
 }
 
 /**
- * NPCI UPI intent used by GPay / PhonePe / Paytm on Android.
+ * NPCI UPI intent used by GPay / PhonePe / Paytm on Android and iOS.
  * Does not confirm payment; checkout still requires a screenshot.
  */
 export function buildUpiPayUrl(input: BuildUpiPayUrlInput): string | null {
@@ -48,6 +48,7 @@ export function buildUpiAppLinks(input: BuildUpiPayUrlInput): UpiAppLink[] {
   if (!query) return []
 
   return [
+    { id: 'upi', label: 'Open UPI app', href: `upi://pay?${query}` },
     { id: 'gpay', label: 'GPay', href: `gpay://upi/pay?${query}` },
     { id: 'phonepe', label: 'PhonePe', href: `phonepe://pay?${query}` },
     { id: 'paytm', label: 'Paytm', href: `paytmmp://pay?${query}` },

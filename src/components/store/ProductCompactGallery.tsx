@@ -61,7 +61,7 @@ export default function ProductCompactGallery({ images, alt }: ProductCompactGal
                 index === activeIndex ? 'border-store-primary' : 'border-store-border'
               }`}
             >
-              <Image src={url} alt="" fill className="object-cover" sizes="56px" />
+              <Image src={url} alt="" fill className="object-contain bg-store-subtle" sizes="56px" />
             </button>
           ))}
         </div>

@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import AppPreviewShowcase from '@/components/AppPreviewShowcase'
 import AppStoreBadges from '@/components/AppStoreBadges'
 import FadeIn from '@/components/motion/FadeIn'
+import MetaTechProviderBadge from '@/components/MetaTechProviderBadge'
 import StoreUrlHighlight from '@/components/StoreUrlHighlight'
 import { smoothEase } from '@/lib/motion'
 
@@ -11,7 +12,7 @@ export default function Hero() {
   const reduceMotion = useReducedMotion()
 
   return (
-    <section className="relative overflow-hidden pt-28 pb-20 md:pt-36 md:pb-28">
+    <section className="relative overflow-hidden pt-36 pb-20 md:pt-44 md:pb-28">
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-green-50/80 to-white" />
       <motion.div
         className="absolute -top-24 right-0 -z-10 h-96 w-96 rounded-full bg-brand-green/10 blur-3xl"
@@ -28,9 +29,12 @@ export default function Hero() {
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div className="min-w-0 text-center lg:text-left">
             <FadeIn direction="down" view={false} delay={0.1}>
-              <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-sm font-medium text-brand-green">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-brand-green" />
-                AI-Powered Social Commerce
+              <div className="mb-8 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+                <div className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-sm font-medium text-brand-green">
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-brand-green" />
+                  AI-Powered Social Commerce
+                </div>
+                <MetaTechProviderBadge variant="chip" />
               </div>
             </FadeIn>
 
