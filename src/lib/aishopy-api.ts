@@ -108,6 +108,7 @@ const apiVariantSchema = z
     name: z.string(),
     options: z.record(z.string()).optional().default({}),
     price_delta: numericSchema.optional(),
+    price: z.union([z.number(), z.string(), z.null()]).optional(),
     stock_qty: numericSchema.optional(),
     sku: z.string().nullable().optional(),
     image_url: z.string().nullable().optional(),
@@ -337,6 +338,20 @@ function resolveImageUrls(apiProduct: z.infer<typeof apiProductSchema>): string[
   return []
 }
 
+function resolveVariantPrice(
+  price: number | string | null | undefined,
+  basePrice: number,
+  priceDelta: number,
+): number {
+  if (typeof price === 'number' && Number.isFinite(price)) return price
+  if (typeof price === 'string' && price.trim() !== '') {
+    const parsed = Number(price)
+    if (Number.isFinite(parsed)) return parsed
+  }
+  if (price === null) return basePrice
+  return basePrice + priceDelta
+}
+
 function mapCompareAtPrice(value: number | undefined): number | undefined {
   if (!value || value <= 0) return undefined
   return value
@@ -347,14 +362,15 @@ function mapVariant(
   basePrice: number,
 ): ProductVariant {
   const priceDelta = apiVariant.price_delta ?? 0
+  const price = resolveVariantPrice(apiVariant.price, basePrice, priceDelta)
 
   return {
     id: apiVariant.id,
     productId: apiVariant.product_id,
     name: apiVariant.name,
     options: apiVariant.options ?? {},
-    priceDelta,
-    price: basePrice + priceDelta,
+    priceDelta: price - basePrice,
+    price,
     compareAtPrice: mapCompareAtPrice(apiVariant.compare_at_price ?? undefined),
     stock: apiVariant.stock_qty ?? 0,
     sku: apiVariant.sku ?? '',
