@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from 'next'
 import MetaPixel from '@/components/MetaPixel'
 import MicrosoftClarity from '@/components/MicrosoftClarity'
 import { inter } from '@/lib/fonts'
+import { DOMAIN_PENDING_HEADER } from '@/lib/tenant'
 import { getStoreSlugFromHeaders } from '@/lib/server-api'
+import { headers } from 'next/headers'
 import CaptureChatSrc from '@/components/store/CaptureChatSrc'
 import './globals.css'
 
@@ -67,11 +69,12 @@ export default async function RootLayout({
 }>) {
   // Marketing tags only — skip merchant storefronts.
   const storeSlug = await getStoreSlugFromHeaders()
+  const domainPending = (await headers()).get(DOMAIN_PENDING_HEADER) === '1'
 
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans`}>
-        {!storeSlug ? (
+        {!storeSlug && !domainPending ? (
           <>
             <MicrosoftClarity />
             <MetaPixel />

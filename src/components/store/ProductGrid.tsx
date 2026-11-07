@@ -9,6 +9,7 @@ type ProductGridProps = {
   storeSlug: string
   products: Product[]
   template?: StoreTemplateId
+  publicUrl?: string
 }
 
 export default function ProductGrid(props: ProductGridProps) {

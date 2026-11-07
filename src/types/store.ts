@@ -53,6 +53,8 @@ export interface Store {
   bannerUrl?: string
   paymentMethods?: StorePaymentMethods
   themeConfig?: ThemeConfig
+  /** Live storefront origin: active custom domain, otherwise the subdomain. */
+  publicUrl?: string
 }
 
 export const PAYMENT_METHOD_LABELS: Record<string, string> = {

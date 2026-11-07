@@ -3,6 +3,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import ProductAvailability from '@/components/store/ProductAvailability'
+import ShareProductButton from '@/components/store/ShareProductButton'
+import { buildStorefrontProductShareUrl } from '@/lib/share-product'
 import { useProductCard } from '@/components/store/cards/useProductCard'
 import { useStoreHref } from '@/contexts/PreviewContext'
 import { formatPrice } from '@/lib/format'
@@ -11,10 +13,11 @@ import type { Product } from '@/types/product'
 type ProductCardModernProps = {
   storeSlug: string
   product: Product
+  publicUrl?: string
 }
 
 /** Modern: sharp grid tile, left accent bar, compact actions. */
-export default function ProductCardModern({ storeSlug, product }: ProductCardModernProps) {
+export default function ProductCardModern({ storeSlug, product, publicUrl }: ProductCardModernProps) {
   const getHref = useStoreHref()
   const {
     imageUrl,
@@ -30,7 +33,13 @@ export default function ProductCardModern({ storeSlug, product }: ProductCardMod
   } = useProductCard(storeSlug, product)
 
   return (
-    <article className="glass-card group flex h-full flex-col overflow-hidden rounded-lg border border-store-border bg-store-bg shadow-sm transition hover:border-store-primary hover:shadow-md">
+    <article className="glass-card group relative flex h-full flex-col overflow-hidden rounded-lg border border-store-border bg-store-bg shadow-sm transition hover:border-store-primary hover:shadow-md">
+      <div className="absolute right-2 top-2 z-10">
+        <ShareProductButton
+          title={product.name}
+          url={buildStorefrontProductShareUrl({ publicUrl, productSlug: product.slug })}
+        />
+      </div>
       <div className="flex min-h-0 flex-1 border-l-4 border-store-primary">
         <Link
           href={getHref(`/product/${product.slug}`)}

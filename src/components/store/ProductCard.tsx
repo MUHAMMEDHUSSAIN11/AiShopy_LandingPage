@@ -11,16 +11,20 @@ type ProductCardProps = {
   storeSlug: string
   product: Product
   cardStyle?: ProductCardStyle
+  publicUrl?: string
 }
 
-const CARD_STYLES: Record<ProductCardStyle, ComponentType<{ storeSlug: string; product: Product }>> = {
+const CARD_STYLES: Record<
+  ProductCardStyle,
+  ComponentType<{ storeSlug: string; product: Product; publicUrl?: string }>
+> = {
   classic: ProductCardClassic,
   minimal: ProductCardMinimal,
   bold: ProductCardBold,
 }
 
 /** Dispatches to the card style chosen in theme_config.productCard (default: classic). */
-export default function ProductCard({ storeSlug, product, cardStyle }: ProductCardProps) {
+export default function ProductCard({ storeSlug, product, cardStyle, publicUrl }: ProductCardProps) {
   const Card = (cardStyle && CARD_STYLES[cardStyle]) || CARD_STYLES.classic
-  return <Card storeSlug={storeSlug} product={product} />
+  return <Card storeSlug={storeSlug} product={product} publicUrl={publicUrl} />
 }

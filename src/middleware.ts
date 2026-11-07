@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { STORE_SLUG_HEADER } from '@/lib/tenant'
+import { DOMAIN_PENDING_HEADER, STORE_SLUG_HEADER } from '@/lib/tenant'
 
 const RESERVED_SUBDOMAINS = new Set(['www', 'api', 'app', 'admin', 'mail'])
 const PLATFORM_HOSTS = new Set(['aishopy.io', 'www.aishopy.io', 'localhost', '127.0.0.1'])
@@ -36,31 +36,44 @@ function extractStoreSlug(host: string): string | null {
   return null
 }
 
-async function resolveCustomDomainSlug(host: string): Promise<string | null> {
+async function resolveCustomDomain(host: string): Promise<{ slug: string | null; pending: boolean }> {
   const hostname = host.split(':')[0].toLowerCase()
-  if (!hostname || PLATFORM_HOSTS.has(hostname)) return null
-  if (hostname.endsWith('.aishopy.io') || hostname.endsWith('.localhost')) return null
+  if (!hostname || PLATFORM_HOSTS.has(hostname)) return { slug: null, pending: false }
+  if (hostname.endsWith('.aishopy.io') || hostname.endsWith('.localhost')) {
+    return { slug: null, pending: false }
+  }
 
   const api = process.env.NEXT_PUBLIC_AISHOPY_API_URL?.replace(/\/$/, '')
-  if (!api) return null
+  if (!api) return { slug: null, pending: false }
 
   try {
     const response = await fetch(
       `${api}/api/public/resolve-host?host=${encodeURIComponent(hostname)}`,
       { headers: { Accept: 'application/json' } },
     )
-    if (!response.ok) return null
-    const body = (await response.json()) as { data?: { slug?: string | null } }
-    const slug = body.data?.slug?.trim()
-    return slug || null
+    if (!response.ok) return { slug: null, pending: false }
+    const body = (await response.json()) as { data?: { slug?: string | null; pending?: boolean } }
+    const slug = body.data?.slug?.trim() || null
+    return { slug, pending: body.data?.pending === true && !slug }
   } catch {
-    return null
+    return { slug: null, pending: false }
   }
 }
 
 export async function middleware(request: NextRequest) {
   const host = request.headers.get('host') ?? ''
-  const storeSlug = extractStoreSlug(host) ?? (await resolveCustomDomainSlug(host))
+  const subdomainSlug = extractStoreSlug(host)
+  const custom = subdomainSlug ? { slug: null, pending: false } : await resolveCustomDomain(host)
+  const storeSlug = subdomainSlug ?? custom.slug
+
+  if (custom.pending) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/domain-pending'
+    url.search = ''
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set(DOMAIN_PENDING_HEADER, '1')
+    return NextResponse.rewrite(url, { request: { headers: requestHeaders } })
+  }
 
   if (!storeSlug) {
     return NextResponse.next()

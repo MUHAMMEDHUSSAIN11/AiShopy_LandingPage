@@ -108,6 +108,7 @@ const apiVariantSchema = z
     name: z.string(),
     options: z.record(z.string()).optional().default({}),
     price_delta: numericSchema.optional(),
+    price: z.union([z.number(), z.string(), z.null()]).optional(),
     stock_qty: numericSchema.optional(),
     sku: z.string().nullable().optional(),
     image_url: z.string().nullable().optional(),
@@ -272,7 +273,8 @@ function mapPaymentMethods(
   )
 }
 
-function mapStore(apiStore: z.infer<typeof apiStoreSchema>): Store {
+function mapStore(apiStore: z.infer<typeof apiStoreSchema>, publicUrl?: string | null): Store {
+  const origin = publicUrl?.trim().replace(/\/$/, '')
   return {
     id: apiStore.id,
     name: apiStore.name,
@@ -282,6 +284,7 @@ function mapStore(apiStore: z.infer<typeof apiStoreSchema>): Store {
     bannerUrl: apiStore.banner_url ?? undefined,
     paymentMethods: mapPaymentMethods(apiStore.payment_methods),
     themeConfig: parseThemeConfig(apiStore.theme_config),
+    publicUrl: origin || undefined,
   }
 }
 
@@ -337,6 +340,20 @@ function resolveImageUrls(apiProduct: z.infer<typeof apiProductSchema>): string[
   return []
 }
 
+function resolveVariantPrice(
+  price: number | string | null | undefined,
+  basePrice: number,
+  priceDelta: number,
+): number {
+  if (typeof price === 'number' && Number.isFinite(price)) return price
+  if (typeof price === 'string' && price.trim() !== '') {
+    const parsed = Number(price)
+    if (Number.isFinite(parsed)) return parsed
+  }
+  if (price === null) return basePrice
+  return basePrice + priceDelta
+}
+
 function mapCompareAtPrice(value: number | undefined): number | undefined {
   if (!value || value <= 0) return undefined
   return value
@@ -347,14 +364,15 @@ function mapVariant(
   basePrice: number,
 ): ProductVariant {
   const priceDelta = apiVariant.price_delta ?? 0
+  const price = resolveVariantPrice(apiVariant.price, basePrice, priceDelta)
 
   return {
     id: apiVariant.id,
     productId: apiVariant.product_id,
     name: apiVariant.name,
     options: apiVariant.options ?? {},
-    priceDelta,
-    price: basePrice + priceDelta,
+    priceDelta: price - basePrice,
+    price,
     compareAtPrice: mapCompareAtPrice(apiVariant.compare_at_price ?? undefined),
     stock: apiVariant.stock_qty ?? 0,
     sku: apiVariant.sku ?? '',
@@ -549,7 +567,9 @@ export async function fetchPublicStore(storeSlug: string): Promise<Store> {
 
   const nested = apiStoreNestedSuccessSchema.safeParse(body)
   if (nested.success) {
-    return mapStore(nested.data.data.store)
+    const payload = nested.data.data as { subdomainUrl?: unknown }
+    const publicUrl = typeof payload.subdomainUrl === 'string' ? payload.subdomainUrl : undefined
+    return mapStore(nested.data.data.store, publicUrl)
   }
 
   const wrapped = apiStoreSuccessSchema.safeParse(body)

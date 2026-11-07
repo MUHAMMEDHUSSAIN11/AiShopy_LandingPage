@@ -127,6 +127,7 @@ export default function StoreCatalogMarketplace({
                 storeSlug={storeSlug}
                 products={filteredProducts}
                 template="boutique"
+                publicUrl={store.publicUrl}
               />
             )}
           </div>

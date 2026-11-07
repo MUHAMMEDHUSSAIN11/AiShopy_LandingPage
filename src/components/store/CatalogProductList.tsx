@@ -12,6 +12,7 @@ type CatalogProductListProps = {
   storeSlug: string
   products: Product[]
   template?: StoreTemplateId
+  publicUrl?: string
 }
 
 const GRID_CLASS: Record<StoreTemplateId, string> = {
@@ -25,6 +26,7 @@ export default function CatalogProductList({
   storeSlug,
   products,
   template: templateProp,
+  publicUrl,
 }: CatalogProductListProps) {
   const templateFromContext = useStoreTemplate()
   const template = templateProp ?? templateFromContext
@@ -70,7 +72,7 @@ export default function CatalogProductList({
     >
       {products.map((product) => (
         <motion.li key={product.id} variants={item} className="template-catalog-item">
-          <Card storeSlug={storeSlug} product={product} />
+          <Card storeSlug={storeSlug} product={product} publicUrl={publicUrl} />
         </motion.li>
       ))}
     </motion.ul>
