@@ -2,17 +2,20 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import ShareProductButton from '@/components/store/ShareProductButton'
 import { useProductCard } from '@/components/store/cards/useProductCard'
+import { buildStorefrontProductShareUrl } from '@/lib/share-product'
 import { formatPrice } from '@/lib/format'
 import type { Product } from '@/types/product'
 
 type ProductCardMinimalProps = {
   storeSlug: string
   product: Product
+  publicUrl?: string
 }
 
 /** Image-forward borderless card with a quiet text CTA and subtle hover. */
-export default function ProductCardMinimal({ storeSlug, product }: ProductCardMinimalProps) {
+export default function ProductCardMinimal({ storeSlug, product, publicUrl }: ProductCardMinimalProps) {
   const {
     imageUrl,
     soldOut,
@@ -27,7 +30,13 @@ export default function ProductCardMinimal({ storeSlug, product }: ProductCardMi
   } = useProductCard(storeSlug, product)
 
   return (
-    <article className="group flex flex-col">
+    <article className="group relative flex flex-col">
+      <div className="absolute right-2 top-2 z-10">
+        <ShareProductButton
+          title={product.name}
+          url={buildStorefrontProductShareUrl({ publicUrl, productSlug: product.slug })}
+        />
+      </div>
       <Link
         href={`/product/${product.slug}`}
         className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100"

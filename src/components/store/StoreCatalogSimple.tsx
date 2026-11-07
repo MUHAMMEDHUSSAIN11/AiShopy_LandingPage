@@ -122,7 +122,12 @@ export default function StoreCatalogSimple({
               <p className="mt-2 text-sm text-store-muted">Try another category or search.</p>
             </div>
           ) : (
-            <CatalogProductList storeSlug={storeSlug} products={filteredProducts} template="classic" />
+            <CatalogProductList
+              storeSlug={storeSlug}
+              products={filteredProducts}
+              template="classic"
+              publicUrl={store.publicUrl}
+            />
           )}
         </div>
       </div>

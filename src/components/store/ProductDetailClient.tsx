@@ -4,8 +4,10 @@ import BackLink from '@/components/store/BackLink'
 import CartIcon from '@/components/store/CartIcon'
 import ProductAvailability from '@/components/store/ProductAvailability'
 import ProductImageGallery from '@/components/store/ProductImageGallery'
+import ShareProductButton from '@/components/store/ShareProductButton'
 import { useProductDetail } from '@/hooks/use-product-detail'
 import { formatPrice } from '@/lib/format'
+import { buildStorefrontProductShareUrl } from '@/lib/share-product'
 import type { Product } from '@/types/product'
 import type { Store } from '@/types/store'
 
@@ -39,6 +41,7 @@ export default function ProductDetailClient({
     handleAddToCart,
     goToCart,
     getHref,
+    selectedVariant,
   } = useProductDetail(store, product, initialVariantId)
 
   const actionButtons = !inStock ? (
@@ -98,7 +101,18 @@ export default function ProductDetailClient({
           <ProductImageGallery images={images} alt={product.name} />
           <div>
             <p className="text-sm font-medium text-store-muted">SKU: {product.sku}</p>
-            <h1 className="mt-2 text-2xl font-bold text-store-text sm:text-3xl">{product.name}</h1>
+            <div className="mt-2 flex items-start justify-between gap-3">
+              <h1 className="text-2xl font-bold text-store-text sm:text-3xl">{product.name}</h1>
+              <ShareProductButton
+                title={product.name}
+                url={buildStorefrontProductShareUrl({
+                  publicUrl: store.publicUrl,
+                  productSlug: product.slug,
+                  variantId: selectedVariant?.id,
+                })}
+                className="mt-1"
+              />
+            </div>
             <div className="mt-3 flex flex-wrap items-baseline gap-3 sm:mt-4">
               <p className="text-2xl font-bold text-store-primary sm:text-3xl">{formatPrice(price)}</p>
               {compareAtPrice ? (

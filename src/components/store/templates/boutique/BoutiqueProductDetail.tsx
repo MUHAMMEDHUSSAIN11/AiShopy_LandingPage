@@ -2,9 +2,11 @@
 
 import ProductAvailability from '@/components/store/ProductAvailability'
 import ProductImageGallery from '@/components/store/ProductImageGallery'
+import ShareProductButton from '@/components/store/ShareProductButton'
 import MarketplaceHeader from '@/components/store/templates/boutique/MarketplaceHeader'
 import { useProductDetail } from '@/hooks/use-product-detail'
 import { formatPrice } from '@/lib/format'
+import { buildStorefrontProductShareUrl } from '@/lib/share-product'
 import type { ProductTemplateProps } from '@/components/store/templates/types'
 
 export default function BoutiqueProductDetail({
@@ -28,6 +30,7 @@ export default function BoutiqueProductDetail({
     handleOptionSelect,
     handleAddToCart,
     goToCart,
+    selectedVariant,
   } = useProductDetail(store, product, initialVariantId)
 
   return (
@@ -46,9 +49,20 @@ export default function BoutiqueProductDetail({
           </div>
 
           <div className="p-5 sm:p-8">
-            <h1 className="marketplace-title text-2xl font-bold tracking-tight text-store-text sm:text-3xl">
-              {product.name}
-            </h1>
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="marketplace-title text-2xl font-bold tracking-tight text-store-text sm:text-3xl">
+                {product.name}
+              </h1>
+              <ShareProductButton
+                title={product.name}
+                url={buildStorefrontProductShareUrl({
+                  publicUrl: store.publicUrl,
+                  productSlug: product.slug,
+                  variantId: selectedVariant?.id,
+                })}
+                className="mt-1"
+              />
+            </div>
             <p className="mt-1 text-sm text-store-muted">SKU {product.sku}</p>
 
             <div className="mt-4 flex flex-wrap items-baseline gap-3">

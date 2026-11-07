@@ -2,17 +2,20 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import ShareProductButton from '@/components/store/ShareProductButton'
 import { useProductCard } from '@/components/store/cards/useProductCard'
+import { buildStorefrontProductShareUrl } from '@/lib/share-product'
 import { formatPrice } from '@/lib/format'
 import type { Product } from '@/types/product'
 
 type ProductCardBoldProps = {
   storeSlug: string
   product: Product
+  publicUrl?: string
 }
 
 /** High-contrast card with a colored footer bar and a prominent add-to-cart CTA. */
-export default function ProductCardBold({ storeSlug, product }: ProductCardBoldProps) {
+export default function ProductCardBold({ storeSlug, product, publicUrl }: ProductCardBoldProps) {
   const {
     imageUrl,
     soldOut,
@@ -27,7 +30,13 @@ export default function ProductCardBold({ storeSlug, product }: ProductCardBoldP
   } = useProductCard(storeSlug, product)
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl bg-store-bg shadow-md transition hover:-translate-y-1 hover:shadow-lg">
+    <article className="group relative flex flex-col overflow-hidden rounded-2xl bg-store-bg shadow-md transition hover:-translate-y-1 hover:shadow-lg">
+      <div className="absolute right-2 top-2 z-10">
+        <ShareProductButton
+          title={product.name}
+          url={buildStorefrontProductShareUrl({ publicUrl, productSlug: product.slug })}
+        />
+      </div>
       <Link href={`/product/${product.slug}`} className="relative aspect-square overflow-hidden bg-gray-100">
         {imageUrl ? (
           <Image

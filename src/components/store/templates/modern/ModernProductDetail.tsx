@@ -4,8 +4,10 @@ import BackLink from '@/components/store/BackLink'
 import CartIcon from '@/components/store/CartIcon'
 import ProductAvailability from '@/components/store/ProductAvailability'
 import ProductCompactGallery from '@/components/store/ProductCompactGallery'
+import ShareProductButton from '@/components/store/ShareProductButton'
 import { useProductDetail } from '@/hooks/use-product-detail'
 import { formatPrice } from '@/lib/format'
+import { buildStorefrontProductShareUrl } from '@/lib/share-product'
 import type { ProductTemplateProps } from '@/components/store/templates/types'
 
 export default function ModernProductDetail({
@@ -31,6 +33,7 @@ export default function ModernProductDetail({
     handleAddToCart,
     goToCart,
     getHref,
+    selectedVariant,
   } = useProductDetail(store, product, initialVariantId)
 
   const purchaseRow = !inStock ? (
@@ -98,7 +101,17 @@ export default function ModernProductDetail({
             <p className="text-xs font-medium uppercase tracking-wide text-store-primary">
               {product.categoryName}
             </p>
-            <h1 className="mt-1 text-2xl font-bold text-store-text sm:text-3xl">{product.name}</h1>
+            <div className="mt-1 flex items-start justify-between gap-3">
+              <h1 className="text-2xl font-bold text-store-text sm:text-3xl">{product.name}</h1>
+              <ShareProductButton
+                title={product.name}
+                url={buildStorefrontProductShareUrl({
+                  publicUrl: store.publicUrl,
+                  productSlug: product.slug,
+                  variantId: selectedVariant?.id,
+                })}
+              />
+            </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <span className="text-2xl font-bold text-store-primary">{formatPrice(price)}</span>

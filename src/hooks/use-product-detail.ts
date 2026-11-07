@@ -119,5 +119,6 @@ export function useProductDetail(
     goToCart,
     goHome,
     getHref,
+    selectedVariant,
   }
 }

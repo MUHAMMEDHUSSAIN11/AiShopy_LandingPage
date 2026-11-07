@@ -273,7 +273,8 @@ function mapPaymentMethods(
   )
 }
 
-function mapStore(apiStore: z.infer<typeof apiStoreSchema>): Store {
+function mapStore(apiStore: z.infer<typeof apiStoreSchema>, publicUrl?: string | null): Store {
+  const origin = publicUrl?.trim().replace(/\/$/, '')
   return {
     id: apiStore.id,
     name: apiStore.name,
@@ -283,6 +284,7 @@ function mapStore(apiStore: z.infer<typeof apiStoreSchema>): Store {
     bannerUrl: apiStore.banner_url ?? undefined,
     paymentMethods: mapPaymentMethods(apiStore.payment_methods),
     themeConfig: parseThemeConfig(apiStore.theme_config),
+    publicUrl: origin || undefined,
   }
 }
 
@@ -565,7 +567,9 @@ export async function fetchPublicStore(storeSlug: string): Promise<Store> {
 
   const nested = apiStoreNestedSuccessSchema.safeParse(body)
   if (nested.success) {
-    return mapStore(nested.data.data.store)
+    const payload = nested.data.data as { subdomainUrl?: unknown }
+    const publicUrl = typeof payload.subdomainUrl === 'string' ? payload.subdomainUrl : undefined
+    return mapStore(nested.data.data.store, publicUrl)
   }
 
   const wrapped = apiStoreSuccessSchema.safeParse(body)

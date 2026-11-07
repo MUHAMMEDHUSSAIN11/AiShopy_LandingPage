@@ -187,6 +187,7 @@ export default function ModernCatalog({
               storeSlug={storeSlug}
               products={filteredProducts}
               template="modern"
+              publicUrl={store.publicUrl}
             />
           )}
         </main>
