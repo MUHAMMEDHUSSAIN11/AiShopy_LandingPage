@@ -15,6 +15,7 @@ import Platform from '@/components/Platform'
 import CTA from '@/components/CTA'
 import ContactUs from '@/components/ContactUs'
 import Footer from '@/components/Footer'
+import WhatsAppChatButton from '@/components/landing/WhatsAppChatButton'
 
 export default function LandingPage() {
   return (
@@ -38,6 +39,7 @@ export default function LandingPage() {
         <ContactUs />
       </main>
       <Footer />
+      <WhatsAppChatButton />
     </div>
   )
 }
